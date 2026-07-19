@@ -73,6 +73,7 @@
     }
     .chart-tooltip.visible { opacity: 1; }
   </style>
+<base target="_blank">
 </head>
 <body>
   <div id="root"></div>
@@ -255,8 +256,16 @@
 
     function ResultCards({ results, t, isRTL }) {
       const { loan, savings, rosca } = results;
-      const costs = [{k:'loan',v:loan.trueCost},{k:'savings',v:savings.trueCost},{k:'rosca',v:rosca.trueCost}];
-      const bestKey = costs.reduce((a,b)=>a.v<b.v?a:b).k;
+      const costs = [
+        {k:'loan',v:loan.trueCost,extra:loan.extra},
+        {k:'savings',v:savings.trueCost,extra:savings.extra},
+        {k:'rosca',v:rosca.trueCost,extra:rosca.extra}
+      ];
+      // Find minimum true cost; tie-break by lower extra percentage
+      const bestKey = costs.reduce((a,b)=>{
+        if (a.v !== b.v) return a.v < b.v ? a : b;
+        return a.extra < b.extra ? a : b;
+      }).k;
       const cards = [
         {key:'loan', title:t.amortizedLoan, data:loan, color:'#6366f1'},
         {key:'savings', title:t.compoundSavings, data:savings, color:'#14b8a6'},
