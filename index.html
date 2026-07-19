@@ -1,45 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Fee Financing Simulator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="./index_files/css2" rel="stylesheet">
+  <script crossorigin="" src="./index_files/react.production.min.js"></script>
+  <script crossorigin="" src="./index_files/react-dom.production.min.js"></script>
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
-  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer="" src="file:///_vercel/insights/script.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-ur: 'Noto Nastaliq Urdu', 'Inter', serif;
-      --bg-primary: #f5f5f0;
-      --bg-dark: #1e2330;
-      --bg-card: #ffffff;
-      --text-primary: #1a1a2e;
-      --text-secondary: #6b7280;
-      --text-light: #ffffff;
-      --purple: #6366f1;
-      --teal: #14b8a6;
-      --amber: #f59e0b;
-      --border: #e5e7eb;
-      --border-dark: #374151;
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
-      --radius-xl: 20px;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --font-display: 'Source Serif 4', Georgia, serif;
+
+      /* Ledger palette */
+      --paper: #FAF7F0;
+      --paper-raised: #FFFFFF;
+      --ink: #1C1B19;
+      --ink-soft: #57534E;
+      --ink-faint: #A39E93;
+      --rule: #E4DFD3;
+      --rule-strong: #D2CBB9;
+
+      /* Route colors — muted, ledger-appropriate, not neon SaaS */
+      --loan: #3B4C8C;
+      --loan-soft: #EEF0F8;
+      --savings: #1F7A6C;
+      --savings-soft: #EAF4F1;
+      --rosca: #B8792E;
+      --rosca-soft: #FAF1E4;
+
+      --good: #2A7A4F;
+      --bad: #B0442E;
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --shadow-card: 0 1px 2px rgba(28,27,25,0.04), 0 1px 0 rgba(28,27,25,0.03);
+      --shadow-raised: 0 4px 16px rgba(28,27,25,0.06), 0 1px 2px rgba(28,27,25,0.05);
     }
+    html { background: var(--paper); }
     body {
       font-family: var(--font-en);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: var(--paper);
+      color: var(--ink);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
@@ -48,45 +58,69 @@
       direction: rtl;
     }
     body.rtl .ltr-text { font-family: var(--font-en); direction: ltr; }
+
     input[type="range"] {
       -webkit-appearance: none; appearance: none;
-      width: 100%; height: 6px; border-radius: 3px;
-      background: #374151; outline: none;
+      width: 100%; height: 4px; border-radius: 2px;
+      background: var(--rule-strong); outline: none;
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: #ffffff; border: 2px solid currentColor;
-      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--paper-raised); border: 2.5px solid currentColor;
+      cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      margin-top: -1px;
     }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--paper-raised); border: 2.5px solid currentColor;
+      cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    input[type="range"]:focus-visible {
+      box-shadow: 0 0 0 3px rgba(59,76,140,0.25);
+    }
+
+    button:focus-visible, input:focus-visible {
+      outline: 2px solid var(--loan);
+      outline-offset: 2px;
+    }
+
     .chart-tooltip {
       position: fixed;
-      background: rgba(30, 35, 48, 0.95);
-      color: #fff;
+      background: var(--ink);
+      color: var(--paper);
       padding: 10px 14px;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       font-size: 12px;
       font-family: var(--font-en);
       pointer-events: none;
       z-index: 1000;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
       white-space: nowrap;
       opacity: 0;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.12s ease;
       max-width: 280px;
     }
     .chart-tooltip.visible { opacity: 1; }
+
+    ::selection { background: rgba(59,76,140,0.18); }
+
+    @media (max-width: 860px) {
+      .fp-shell { flex-direction: column !important; }
+      .fp-control-panel { max-width: none !important; width: 100% !important; }
+    }
   </style>
-<base target="_blank">
+<!--<base target="_blank">--><base href="." target="_blank">
 </head>
-<body>
-  <div id="root"></div>
-  <div id="chart-tooltip" class="chart-tooltip"></div>
+<body class="">
+  <div id="root"><div style="min-height: 100vh; display: flex; flex-direction: column;"><div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; background: var(--ink); border-bottom: 1px solid rgba(250, 247, 240, 0.08);"><div><h1 style="font-size: 21px; font-weight: 700; color: var(--paper); letter-spacing: -0.01em; font-family: var(--font-display);">Family Fee Financing Simulator</h1></div><button style="background: rgba(250, 247, 240, 0.08); color: var(--paper); border: 1px solid rgba(250, 247, 240, 0.2); padding: 8px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-en); letter-spacing: 0.01em;">اردو</button></div><div class="fp-shell" style="display: flex; flex-direction: row; flex: 1 1 0%; padding: 22px; gap: 20px; max-width: 1400px; margin: 0px auto; width: 100%;"><div class="fp-control-panel" style="background: var(--ink); border-radius: var(--radius-lg); padding: 26px 22px; color: var(--paper); min-width: 260px; max-width: 300px; flex-shrink: 0;"><div style="font-size: 11px; font-weight: 700; color: rgba(250, 247, 240, 0.45); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 18px;">Inputs</div><div style="margin-bottom: 20px;"><label style="display: block; font-size: 12.5px; color: rgba(250, 247, 240, 0.65); margin-bottom: 7px; font-weight: 500;">Target Amount</label><input type="text" inputmode="numeric" value="Rs 500,000" style="width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(250, 247, 240, 0.18); background: rgba(250, 247, 240, 0.06); color: var(--paper); font-size: 16px; font-weight: 600; font-family: var(--font-en); outline: none;"></div><div style="margin-bottom: 18px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;"><span style="font-size: 12.5px; color: rgba(250, 247, 240, 0.65); font-weight: 500; letter-spacing: 0.01em;">Duration (Months)</span><span style="color: rgb(217, 168, 103); font-size: 13px; font-weight: 700; font-family: var(--font-en); letter-spacing: 0.01em;">24 mo</span></div><input type="range" min="3" max="60" step="1" value="24" style="width: 100%; color: rgb(217, 168, 103);"></div><div style="margin-bottom: 18px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;"><span style="font-size: 12.5px; color: rgba(250, 247, 240, 0.65); font-weight: 500; letter-spacing: 0.01em;">Expected Inflation (%)</span><span style="color: rgb(217, 168, 103); font-size: 13px; font-weight: 700; font-family: var(--font-en); letter-spacing: 0.01em;">8%</span></div><input type="range" min="0" max="25" step="0.1" value="8" style="width: 100%; color: rgb(217, 168, 103);"></div><div style="display: flex; align-items: center; gap: 9px; margin-top: 24px; margin-bottom: 14px; padding-top: 16px; border-top: 1px solid rgba(250, 247, 240, 0.1);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 19h5v-4h5v-4h5V6" stroke="#8C9EE8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="color: var(--paper); font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em;">Amortized Loan</span></div><div style="margin-bottom: 18px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;"><span style="font-size: 12.5px; color: rgba(250, 247, 240, 0.65); font-weight: 500; letter-spacing: 0.01em;">Loan Interest (%)</span><span style="color: rgb(140, 158, 232); font-size: 13px; font-weight: 700; font-family: var(--font-en); letter-spacing: 0.01em;">21%</span></div><input type="range" min="0" max="30" step="0.1" value="21" style="width: 100%; color: rgb(140, 158, 232);"></div><div style="display: flex; align-items: center; gap: 9px; margin-top: 24px; margin-bottom: 14px; padding-top: 16px; border-top: 1px solid rgba(250, 247, 240, 0.1);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="15" width="4.5" height="5" rx="1" fill="#5FC4AE" opacity="0.85"></rect><rect x="10" y="10" width="4.5" height="10" rx="1" fill="#5FC4AE" opacity="0.85"></rect><rect x="16" y="4" width="4.5" height="16" rx="1" fill="#5FC4AE" opacity="0.85"></rect></svg><span style="color: var(--paper); font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em;">Compound Savings</span></div><div style="margin-bottom: 18px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;"><span style="font-size: 12.5px; color: rgba(250, 247, 240, 0.65); font-weight: 500; letter-spacing: 0.01em;">Savings Yield (%)</span><span style="color: rgb(95, 196, 174); font-size: 13px; font-weight: 700; font-family: var(--font-en); letter-spacing: 0.01em;">6%</span></div><input type="range" min="0" max="20" step="0.1" value="6" style="width: 100%; color: rgb(95, 196, 174);"></div><div style="display: flex; align-items: center; gap: 9px; margin-top: 24px; margin-bottom: 14px; padding-top: 16px; border-top: 1px solid rgba(250, 247, 240, 0.1);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#D9A867" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round"></circle><circle cx="12" cy="4" r="2" fill="#D9A867"></circle></svg><span style="color: var(--paper); font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em;">Committee (ROSCA)</span></div><div style="margin-bottom: 18px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;"><span style="font-size: 12.5px; color: rgba(250, 247, 240, 0.65); font-weight: 500; letter-spacing: 0.01em;">Your Committee Turn (Month)</span><span style="color: rgb(217, 168, 103); font-size: 13px; font-weight: 700; font-family: var(--font-en); letter-spacing: 0.01em;">12</span></div><input type="range" min="1" max="24" step="1" value="12" style="width: 100%; color: rgb(217, 168, 103);"></div></div><div style="flex: 1 1 0%; min-width: 0px; display: flex; flex-direction: column; gap: 14px;"><div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px;"><div style="background: var(--paper-raised); border-radius: var(--radius-lg); padding: 20px 18px; border-top: 3px solid var(--loan); border-right-color: ; border-right-style: ; border-right-width: ; border-bottom-color: ; border-bottom-style: ; border-bottom-width: ; border-left-color: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; box-shadow: var(--shadow-card); position: relative; flex: 1 1 0%; min-width: 190px;"><div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;"><div style="display: flex; align-items: center; gap: 8px;"><div style="width: 26px; height: 26px; border-radius: 50%; background: var(--loan-soft); display: flex; align-items: center; justify-content: center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 19h5v-4h5v-4h5V6" stroke="var(--loan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div><h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: 0.01em;">Amortized Loan</h3></div></div><p style="font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">Monthly Payment</p><p style="font-size: 26px; font-weight: 700; color: var(--ink); margin-bottom: 16px; font-family: var(--font-en); line-height: 1.1; letter-spacing: -0.01em;">Rs 25,693</p><div style="border-top: 1px solid var(--rule); padding-top: 12px; display: flex; justify-content: space-between; gap: 8px;"><div><p style="font-size: 10.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">Total Paid</p><p style="font-size: 13px; font-weight: 700; color: var(--ink); font-family: var(--font-en);">Rs 616,628</p></div><div style="text-align: right;"><p style="font-size: 10.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">True Cost (Infl. Adj.)</p><p style="font-size: 13px; font-weight: 700; color: var(--loan); font-family: var(--font-en);">Rs 568,082</p><span style="font-size: 10px; color: var(--bad); margin-top: 3px; font-weight: 600; font-family: var(--font-en); background: rgba(176, 68, 46, 0.08); padding: 2px 6px; border-radius: 10px; display: inline-block;">+23.3% more</span></div></div></div><div style="background: var(--paper-raised); border-radius: var(--radius-lg); padding: 20px 18px; border-top: 3px solid var(--savings); border-right-color: ; border-right-style: ; border-right-width: ; border-bottom-color: ; border-bottom-style: ; border-bottom-width: ; border-left-color: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; box-shadow: var(--shadow-raised); position: relative; flex: 1 1 0%; min-width: 190px;"><div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;"><div style="display: flex; align-items: center; gap: 8px;"><div style="width: 26px; height: 26px; border-radius: 50%; background: var(--savings-soft); display: flex; align-items: center; justify-content: center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="15" width="4.5" height="5" rx="1" fill="var(--savings)" opacity="0.85"></rect><rect x="10" y="10" width="4.5" height="10" rx="1" fill="var(--savings)" opacity="0.85"></rect><rect x="16" y="4" width="4.5" height="16" rx="1" fill="var(--savings)" opacity="0.85"></rect></svg></div><h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: 0.01em;">Compound Savings</h3></div><span style="font-size: 9.5px; font-weight: 700; color: var(--savings); background: var(--savings-soft); padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-en);">Best Value</span></div><p style="font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">Monthly Payment</p><p style="font-size: 26px; font-weight: 700; color: var(--ink); margin-bottom: 16px; font-family: var(--font-en); line-height: 1.1; letter-spacing: -0.01em;">Rs 19,660</p><div style="border-top: 1px solid var(--rule); padding-top: 12px; display: flex; justify-content: space-between; gap: 8px;"><div><p style="font-size: 10.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">Total Paid</p><p style="font-size: 13px; font-weight: 700; color: var(--ink); font-family: var(--font-en);">Rs 471,847</p></div><div style="text-align: right;"><p style="font-size: 10.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">True Cost (Infl. Adj.)</p><p style="font-size: 13px; font-weight: 700; color: var(--savings); font-family: var(--font-en);">Rs 434,700</p><span style="font-size: 10px; color: var(--good); margin-top: 3px; font-weight: 600; font-family: var(--font-en); background: rgba(42, 122, 79, 0.08); padding: 2px 6px; border-radius: 10px; display: inline-block;">5.6% less</span></div></div></div><div style="background: var(--paper-raised); border-radius: var(--radius-lg); padding: 20px 18px; border-top: 3px solid var(--rosca); border-right-color: ; border-right-style: ; border-right-width: ; border-bottom-color: ; border-bottom-style: ; border-bottom-width: ; border-left-color: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; box-shadow: var(--shadow-card); position: relative; flex: 1 1 0%; min-width: 190px;"><div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;"><div style="display: flex; align-items: center; gap: 8px;"><div style="width: 26px; height: 26px; border-radius: 50%; background: var(--rosca-soft); display: flex; align-items: center; justify-content: center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="var(--rosca)" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round"></circle><circle cx="12" cy="4" r="2" fill="var(--rosca)"></circle></svg></div><h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: 0.01em;">Committee (ROSCA)</h3></div></div><p style="font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">Monthly Payment</p><p style="font-size: 26px; font-weight: 700; color: var(--ink); margin-bottom: 16px; font-family: var(--font-en); line-height: 1.1; letter-spacing: -0.01em;">Rs 20,833</p><div style="border-top: 1px solid var(--rule); padding-top: 12px; display: flex; justify-content: space-between; gap: 8px;"><div><p style="font-size: 10.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">Total Paid</p><p style="font-size: 13px; font-weight: 700; color: var(--ink); font-family: var(--font-en);">Rs 500,000</p></div><div style="text-align: right;"><p style="font-size: 10.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500;">True Cost (Infl. Adj.)</p><p style="font-size: 13px; font-weight: 700; color: var(--rosca); font-family: var(--font-en);">Rs 460,636</p><span style="font-size: 10px; color: var(--bad); margin-top: 3px; font-weight: 600; font-family: var(--font-en); background: rgba(176, 68, 46, 0.08); padding: 2px 6px; border-radius: 10px; display: inline-block;">+0.0% more</span></div></div></div></div><div style="display: flex; gap: 14px; flex-wrap: wrap;"><div style="background: var(--paper-raised); border-radius: var(--radius-lg); padding: 20px; border: 1px solid var(--rule); box-shadow: var(--shadow-card); flex: 1 1 0%; min-width: 280px;"><h3 style="font-size: 14px; font-weight: 700; margin-bottom: 18px; color: var(--ink); letter-spacing: 0.01em;">Cumulative Cash Outflow</h3><svg viewBox="0 0 480 260" style="width: 100%; height: auto; max-height: 260px; cursor: crosshair;"><line x1="80" y1="210" x2="450" y2="210" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="165" x2="450" y2="165" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="120" x2="450" y2="120" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="75" x2="450" y2="75" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="30" x2="450" y2="30" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><text x="72" y="214" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs0</text><text x="72" y="169" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs2L</text><text x="72" y="124" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs4L</text><text x="72" y="79" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs5L</text><text x="72" y="34" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs7L</text><text x="80" y="245" text-anchor="middle" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Month 1</text><text x="176.52173913043478" y="245" text-anchor="middle" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Month 7</text><text x="273.04347826086956" y="245" text-anchor="middle" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Month 13</text><text x="369.5652173913044" y="245" text-anchor="middle" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Month 19</text><text x="450" y="245" text-anchor="middle" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Month 24</text><path d="M 80 203.39327344811923 L 96.08695652173913 196.7865468962385 L 112.17391304347825 190.17982034435772 L 128.26086956521738 183.57309379247698 L 144.3478260869565 176.9663672405962 L 160.43478260869566 170.35964068871544 L 176.52173913043478 163.7529141368347 L 192.60869565217394 157.14618758495396 L 208.69565217391303 150.5394610330732 L 224.7826086956522 143.93273448119243 L 240.8695652173913 137.3260079293117 L 256.95652173913044 130.71928137743092 L 273.04347826086956 124.11255482555018 L 289.1304347826087 117.50582827366941 L 305.21739130434787 110.89910172178867 L 321.304347826087 104.29237516990791 L 337.39130434782606 97.68564861802714 L 353.4782608695652 91.07892206614639 L 369.5652173913044 84.47219551426564 L 385.6521739130435 77.86546896238488 L 401.7391304347826 71.25874241050411 L 417.8260869565217 64.65201585862337 L 433.9130434782609 58.04528930674263 L 450 51.438562754861834" fill="none" stroke="#3B4C8C" stroke-width="2.25"></path><path d="M 80 204.94449296750258 L 96.08695652173913 199.88898593500514 L 112.17391304347825 194.8334789025077 L 128.26086956521738 189.77797187001028 L 144.3478260869565 184.72246483751286 L 160.43478260869566 179.66695780501541 L 176.52173913043478 174.61145077251797 L 192.60869565217394 169.55594374002055 L 208.69565217391303 164.50043670752314 L 224.7826086956522 159.4449296750257 L 240.8695652173913 154.38942264252827 L 256.95652173913044 149.33391561003083 L 273.04347826086956 144.2784085775334 L 289.1304347826087 139.22290154503597 L 305.21739130434787 134.16739451253852 L 321.304347826087 129.1118874800411 L 337.39130434782606 124.05638044754367 L 353.4782608695652 119.00087341504626 L 369.5652173913044 113.94536638254883 L 385.6521739130435 108.8898593500514 L 401.7391304347826 103.83435231755396 L 417.8260869565217 98.77884528505653 L 433.9130434782609 93.7233382525591 L 450 88.66783122006164" fill="none" stroke="#1F7A6C" stroke-width="2.25"></path><path d="M 80 204.64285714285714 L 96.08695652173913 199.28571428571428 L 112.17391304347825 193.92857142857142 L 128.26086956521738 188.57142857142858 L 144.3478260869565 183.21428571428572 L 160.43478260869566 177.85714285714286 L 176.52173913043478 172.5 L 192.60869565217394 167.14285714285714 L 208.69565217391303 161.78571428571428 L 224.7826086956522 156.42857142857144 L 240.8695652173913 151.07142857142856 L 256.95652173913044 145.71428571428572 L 273.04347826086956 140.35714285714286 L 289.1304347826087 135 L 305.21739130434787 129.64285714285714 L 321.304347826087 124.28571428571429 L 337.39130434782606 118.92857142857143 L 353.4782608695652 113.57142857142857 L 369.5652173913044 108.21428571428572 L 385.6521739130435 102.85714285714286 L 401.7391304347826 97.5 L 417.8260869565217 92.14285714285714 L 433.9130434782609 86.7857142857143 L 450 81.42857142857142" fill="none" stroke="#B8792E" stroke-width="2.25"></path><g><line x1="256.95652173913044" y1="30" x2="256.95652173913044" y2="210" stroke="#B8792E" stroke-dasharray="5 4" stroke-width="1.25" opacity="0.55"></line><text x="256.95652173913044" y="22" text-anchor="middle" font-size="10" fill="#B8792E" font-weight="600" font-family="var(--font-en)">ROSCA Payout</text></g></svg><div style="display: flex; justify-content: center; gap: 20px; margin-top: 12px; flex-wrap: wrap;"><div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--ink-soft);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 19h5v-4h5v-4h5V6" stroke="#3B4C8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Amortized Loan</span></div><div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--ink-soft);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="4" y="15" width="4.5" height="5" rx="1" fill="#1F7A6C" opacity="0.85"></rect><rect x="10" y="10" width="4.5" height="10" rx="1" fill="#1F7A6C" opacity="0.85"></rect><rect x="16" y="4" width="4.5" height="16" rx="1" fill="#1F7A6C" opacity="0.85"></rect></svg><span>Compound Savings</span></div><div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--ink-soft);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#B8792E" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round"></circle><circle cx="12" cy="4" r="2" fill="#B8792E"></circle></svg><span>Committee (ROSCA)</span></div></div></div><div style="background: var(--paper-raised); border-radius: var(--radius-lg); padding: 20px; border: 1px solid var(--rule); box-shadow: var(--shadow-card); flex: 1 1 0%; min-width: 280px;"><h3 style="font-size: 14px; font-weight: 700; margin-bottom: 18px; color: var(--ink); letter-spacing: 0.01em;">True Cost (Inflation Adjusted)</h3><svg viewBox="0 0 480 300" style="width: 100%; height: auto; max-height: 300px; cursor: crosshair;"><line x1="80" y1="230" x2="450" y2="230" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="185" x2="450" y2="185" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="140" x2="450" y2="140" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="95" x2="450" y2="95" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><line x1="80" y1="50" x2="450" y2="50" stroke="var(--rule)" stroke-dasharray="3 4" stroke-width="1"></line><text x="72" y="234" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs 0</text><text x="72" y="189" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs 1.5L</text><text x="72" y="144" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs 3.0L</text><text x="72" y="99" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs 4.5L</text><text x="72" y="54" text-anchor="end" font-size="10" fill="var(--ink-faint)" font-family="var(--font-en)">Rs 6.0L</text><g><rect x="135.5" y="59.5754" width="49.333333333333336" height="170.4246" fill="#3B4C8C" rx="3"></rect><text x="160.16666666666666" y="47.5754" text-anchor="middle" font-size="11" fill="#3B4C8C" font-weight="700" font-family="var(--font-en)">Rs 568,082</text><text x="160.16666666666666" y="250" text-anchor="middle" font-size="10" fill="var(--ink-soft)" font-weight="600">Amortized Loan</text></g><g><rect x="240.33333333333334" y="99.59" width="49.333333333333336" height="130.41" fill="#1F7A6C" rx="3"></rect><text x="265" y="87.59" text-anchor="middle" font-size="11" fill="#1F7A6C" font-weight="700" font-family="var(--font-en)">Rs 434,700</text><text x="265" y="250" text-anchor="middle" font-size="10" fill="var(--ink-soft)" font-weight="600">Compound Savings</text></g><g><rect x="345.1666666666667" y="91.8092" width="49.333333333333336" height="138.1908" fill="#B8792E" rx="3"></rect><text x="369.83333333333337" y="79.8092" text-anchor="middle" font-size="11" fill="#B8792E" font-weight="700" font-family="var(--font-en)">Rs 460,636</text><text x="369.83333333333337" y="250" text-anchor="middle" font-size="10" fill="var(--ink-soft)" font-weight="600">Committee (ROSCA)</text></g></svg></div></div></div></div></div></div>
+  <div id="chart-tooltip" class="chart-tooltip" style="left: 790px; top: 412px;"><div style="font-weight:700;margin-bottom:6px;font-size:13px;">Month 21</div><div style="color:#8C9EE8;margin-bottom:2px;">Amortized Loan: Rs 539,549</div><div style="color:#5FC4AE;margin-bottom:2px;">Compound Savings: Rs 412,866</div><div style="color:#D9A867;">Committee (ROSCA): Rs 437,500</div></div>
   <script>
     const { useState, useMemo, useCallback, useRef, useEffect } = React;
 
     const en = {
       title: "Family Fee Financing Simulator",
+      subtitle: "Compare what a school fee really costs, three ways",
       targetAmount: "Target Amount",
       duration: "Duration (Months)",
       inflation: "Expected Inflation (%)",
@@ -110,10 +144,13 @@
       rs: "Rs",
       month: "Month",
       months: "months",
-      roscaPayout: "ROSCA Payout"
+      roscaPayout: "ROSCA Payout",
+      inputs: "Inputs",
+      routes: "Financing routes"
     };
     const ur = {
       title: "فیملی فیس فنانسنگ سمیلیٹر",
+      subtitle: "اسکول فیس کی حقیقی لاگت، تین طریقوں سے موازنہ",
       targetAmount: "بڈف رقم",
       duration: "مدت (مہینے)",
       inflation: "متوقع افراط زر (%)",
@@ -137,7 +174,9 @@
       rs: "روپیہ",
       month: "مہینہ",
       months: "مہینے",
-      roscaPayout: "کمیٹی کی ادائیگی"
+      roscaPayout: "کمیٹی کی ادائیگی",
+      inputs: "معلومات",
+      routes: "فنانسنگ کے طریقے"
     };
     const translations = { en, ur };
 
@@ -181,9 +220,9 @@
           rosca: { monthly: Math.round(roscaMonthly), totalPaid: Math.round(roscaTotal), trueCost: Math.round(roscaTrue), extra: roscaExtra },
           cashOutflow: cashOut,
           trueCostData: [
-            { name: 'Amortized Loan', value: Math.round(loanTrue), color: '#6366f1', extra: loanExtra },
-            { name: 'Compound Savings', value: Math.round(saveTrue), color: '#14b8a6', extra: saveExtra },
-            { name: 'Committee (ROSCA)', value: Math.round(roscaTrue), color: '#f59e0b', extra: roscaExtra },
+            { name: 'Amortized Loan', value: Math.round(loanTrue), color: 'var(--loan)', extra: loanExtra },
+            { name: 'Compound Savings', value: Math.round(saveTrue), color: 'var(--savings)', extra: saveExtra },
+            { name: 'Committee (ROSCA)', value: Math.round(roscaTrue), color: 'var(--rosca)', extra: roscaExtra },
           ]
         };
       }, [targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn]);
@@ -193,66 +232,121 @@
       return React.createElement(type, props, ...children);
     }
 
+    // ---- Route glyphs: each financing route gets its own motif instead of a colored dot ----
+    function RouteGlyph({ kind, color, size = 18 }) {
+      const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none' };
+      if (kind === 'loan') {
+        // descending stair — amortization paying down
+        return e('svg', common,
+          e('path', { d: 'M3 19h5v-4h5v-4h5V6', stroke: color, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' })
+        );
+      }
+      if (kind === 'savings') {
+        // rising stack — compounding growth
+        return e('svg', common,
+          e('rect', { x: 4, y: 15, width: 4.5, height: 5, rx: 1, fill: color, opacity: 0.85 }),
+          e('rect', { x: 10, y: 10, width: 4.5, height: 10, rx: 1, fill: color, opacity: 0.85 }),
+          e('rect', { x: 16, y: 4, width: 4.5, height: 16, rx: 1, fill: color, opacity: 0.85 })
+        );
+      }
+      // rosca — rotating circle of contributors
+      return e('svg', common,
+        e('circle', { cx: 12, cy: 12, r: 8, stroke: color, strokeWidth: 2, strokeDasharray: '2 4', strokeLinecap: 'round' }),
+        e('circle', { cx: 12, cy: 4, r: 2, fill: color })
+      );
+    }
+
     function Slider({ label, value, min, max, step, onChange, color, badge }) {
-      return e('div', { style: { marginBottom: 20 } },
-        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 } },
-          e('span', { style: { fontSize: 13, color: 'var(--text-light)', fontWeight: 500, opacity: 0.9 } }, label),
-          e('span', { style: { background: color + '22', color: color, padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-en)' } }, badge || value)
+      return e('div', { style: { marginBottom: 18 } },
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 } },
+          e('span', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.65)', fontWeight: 500, letterSpacing: '0.01em' } }, label),
+          e('span', { style: { color: color, fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-en)', letterSpacing: '0.01em' } }, badge || value)
         ),
         e('input', { type: 'range', min, max, step, value, onChange: (ev) => onChange(Number(ev.target.value)), style: { width: '100%', color: color } })
       );
     }
 
-    function SectionHeader({ color, title }) {
-      return e('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 22, marginBottom: 12, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' } },
-        e('span', { style: { width: 12, height: 12, borderRadius: '50%', background: color, display: 'inline-block' } }),
-        e('span', { style: { color: 'var(--text-light)', fontSize: 14, fontWeight: 600 } }, title)
+    function SectionHeader({ color, title, kind }) {
+      return e('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginTop: 24, marginBottom: 14, paddingTop: 16, borderTop: '1px solid rgba(250,247,240,0.10)' } },
+        e(RouteGlyph, { kind, color, size: 16 }),
+        e('span', { style: { color: 'var(--paper)', fontSize: 13.5, fontWeight: 700, letterSpacing: '0.01em' } }, title)
       );
     }
 
-    function ControlPanel({ t, params, onChange }) {
+    function ControlPanel({ t, params, onChange, isRTL }) {
       const fmt = (v) => `Rs ${v.toLocaleString()}`;
-      return e('div', { style: { background: 'var(--bg-dark)', borderRadius: 'var(--radius-xl)', padding: '24px 20px', color: 'var(--text-light)', minWidth: 260, maxWidth: 320, flexShrink: 0 } },
-        
-        e('div', { style: { marginBottom: 18 } },
-          e('label', { style: { display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 6, fontWeight: 500 } }, t.targetAmount),
-          e('input', { type: 'text', value: fmt(params.targetAmount), onChange: (ev) => { const val = Number(ev.target.value.replace(/[^0-9]/g, '')); onChange('targetAmount', val || 0); }, style: { width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-dark)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-light)', fontSize: 15, fontFamily: 'var(--font-en)', outline: 'none' } })
+      return e('div', {
+        className: 'fp-control-panel',
+        style: { background: 'var(--ink)', borderRadius: 'var(--radius-lg)', padding: '26px 22px', color: 'var(--paper)', minWidth: 260, maxWidth: 300, flexShrink: 0 }
+      },
+        e('div', { style: { fontSize: 11, fontWeight: 700, color: 'rgba(250,247,240,0.45)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 } }, t.inputs),
+
+        e('div', { style: { marginBottom: 20 } },
+          e('label', { style: { display: 'block', fontSize: 12.5, color: 'rgba(250,247,240,0.65)', marginBottom: 7, fontWeight: 500 } }, t.targetAmount),
+          e('input', {
+            type: 'text', inputMode: 'numeric', value: fmt(params.targetAmount),
+            onChange: (ev) => { const val = Number(ev.target.value.replace(/[^0-9]/g, '')); onChange('targetAmount', val || 0); },
+            style: {
+              width: '100%', padding: '11px 14px', borderRadius: 'var(--radius-sm)',
+              border: '1px solid rgba(250,247,240,0.18)', background: 'rgba(250,247,240,0.06)',
+              color: 'var(--paper)', fontSize: 16, fontWeight: 600, fontFamily: 'var(--font-en)', outline: 'none'
+            }
+          })
         ),
-        e(Slider, { label: t.duration, value: params.duration, min: 3, max: 60, step: 1, onChange: (v) => onChange('duration', v), color: '#f59e0b', badge: `${params.duration}` }),
-        e(Slider, { label: t.inflation, value: params.inflation, min: 0, max: 25, step: 0.1, onChange: (v) => onChange('inflation', v), color: '#f59e0b', badge: `${params.inflation}%` }),
-        e(SectionHeader, { color: '#6366f1', title: t.amortizedLoan }),
-        e(Slider, { label: t.loanInterest, value: params.loanInterest, min: 0, max: 30, step: 0.1, onChange: (v) => onChange('loanInterest', v), color: '#6366f1', badge: `${params.loanInterest}%` }),
-        e(SectionHeader, { color: '#14b8a6', title: t.compoundSavings }),
-        e(Slider, { label: t.savingsYield, value: params.savingsYield, min: 0, max: 20, step: 0.1, onChange: (v) => onChange('savingsYield', v), color: '#14b8a6', badge: `${params.savingsYield}%` }),
-        e(SectionHeader, { color: '#f59e0b', title: t.committee }),
-        e(Slider, { label: t.roscaTurn, value: params.roscaTurn, min: 1, max: params.duration, step: 1, onChange: (v) => onChange('roscaTurn', v), color: '#f59e0b', badge: `${params.roscaTurn}` })
+        e(Slider, { label: t.duration, value: params.duration, min: 3, max: 60, step: 1, onChange: (v) => onChange('duration', v), color: '#D9A867', badge: `${params.duration} ${isRTL ? t.months : (params.duration===1?'mo':'mo')}` }),
+        e(Slider, { label: t.inflation, value: params.inflation, min: 0, max: 25, step: 0.1, onChange: (v) => onChange('inflation', v), color: '#D9A867', badge: `${params.inflation}%` }),
+
+        e(SectionHeader, { color: '#8C9EE8', title: t.amortizedLoan, kind: 'loan' }),
+        e(Slider, { label: t.loanInterest, value: params.loanInterest, min: 0, max: 30, step: 0.1, onChange: (v) => onChange('loanInterest', v), color: '#8C9EE8', badge: `${params.loanInterest}%` }),
+
+        e(SectionHeader, { color: '#5FC4AE', title: t.compoundSavings, kind: 'savings' }),
+        e(Slider, { label: t.savingsYield, value: params.savingsYield, min: 0, max: 20, step: 0.1, onChange: (v) => onChange('savingsYield', v), color: '#5FC4AE', badge: `${params.savingsYield}%` }),
+
+        e(SectionHeader, { color: '#D9A867', title: t.committee, kind: 'rosca' }),
+        e(Slider, { label: t.roscaTurn, value: params.roscaTurn, min: 1, max: params.duration, step: 1, onChange: (v) => onChange('roscaTurn', v), color: '#D9A867', badge: `${params.roscaTurn}` })
       );
     }
 
-    function ResultCard({ title, monthly, totalPaid, trueCost, extra, color, isBest, t, isRTL }) {
+    function ResultCard({ title, monthly, totalPaid, trueCost, extra, color, softColor, kind, isBest, t, isRTL }) {
       const sign = extra >= 0 ? '+' : '';
       const extraAbs = Math.abs(extra).toFixed(1);
       const moreLess = extra >= 0 ? t.more : t.less;
-      const badgeStyle = { position: 'absolute', top: -2, background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: '0 0 6px 6px', textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-en)' };
-      badgeStyle[isRTL ? 'left' : 'right'] = 12;
 
-      return e('div', { style: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '20px 16px', borderTop: `3px solid ${color}`, boxShadow: 'var(--shadow-md)', position: 'relative', flex: 1, minWidth: 190 } },
-        isBest ? e('div', { style: badgeStyle }, t.bestValue) : null,
-        e('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 } },
-          e('span', { style: { width: 10, height: 10, borderRadius: '50%', background: color, display: 'inline-block' } }),
-          e('h3', { style: { fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' } }, title)
-        ),
-        e('p', { style: { fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, fontWeight: 500 } }, t.monthlyPayment),
-        e('p', { style: { fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14, fontFamily: 'var(--font-en)', lineHeight: 1.1 } }, `${t.rs} ${monthly.toLocaleString()}`),
-        e('div', { style: { borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', gap: 8 } },
-          e('div', {},
-            e('p', { style: { fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2, fontWeight: 500 } }, t.totalPaid),
-            e('p', { style: { fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-en)' } }, `${t.rs} ${totalPaid.toLocaleString()}`)
+      return e('div', {
+        style: {
+          background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '20px 18px',
+          border: `1px solid ${isBest ? color : 'var(--rule)'}`,
+          borderTop: `3px solid ${color}`,
+          boxShadow: isBest ? 'var(--shadow-raised)' : 'var(--shadow-card)',
+          position: 'relative', flex: 1, minWidth: 190
+        }
+      },
+        e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 } },
+          e('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
+            e('div', { style: { width: 26, height: 26, borderRadius: '50%', background: softColor, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+              e(RouteGlyph, { kind, color, size: 15 })
+            ),
+            e('h3', { style: { fontSize: 13.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '0.01em' } }, title)
           ),
-          e('div', { style: { textAlign: 'right' } },
-            e('p', { style: { fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2, fontWeight: 500 } }, t.trueCost),
+          isBest ? e('span', { style: { fontSize: 9.5, fontWeight: 700, color: color, background: softColor, padding: '3px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-en)' } }, t.bestValue) : null
+        ),
+        e('p', { style: { fontSize: 11, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.monthlyPayment),
+        e('p', { style: { fontSize: 26, fontWeight: 700, color: 'var(--ink)', marginBottom: 16, fontFamily: 'var(--font-en)', lineHeight: 1.1, letterSpacing: '-0.01em' } }, `${t.rs} ${monthly.toLocaleString()}`),
+        e('div', { style: { borderTop: '1px solid var(--rule)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', gap: 8 } },
+          e('div', {},
+            e('p', { style: { fontSize: 10.5, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.totalPaid),
+            e('p', { style: { fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-en)' } }, `${t.rs} ${totalPaid.toLocaleString()}`)
+          ),
+          e('div', { style: { textAlign: isRTL ? 'left' : 'right' } },
+            e('p', { style: { fontSize: 10.5, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.trueCost),
             e('p', { style: { fontSize: 13, fontWeight: 700, color: color, fontFamily: 'var(--font-en)' } }, `${t.rs} ${trueCost.toLocaleString()}`),
-            e('span', { style: { fontSize: 10, color: extra >= 0 ? '#ef4444' : '#22c55e', marginTop: 2, fontWeight: 600, fontFamily: 'var(--font-en)', background: extra >= 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', padding: '2px 6px', borderRadius: 10, display: 'inline-block' } }, `${sign}${extraAbs}% ${moreLess}`)
+            e('span', {
+              style: {
+                fontSize: 10, color: extra >= 0 ? 'var(--bad)' : 'var(--good)', marginTop: 3, fontWeight: 600,
+                fontFamily: 'var(--font-en)', background: extra >= 0 ? 'rgba(176,68,46,0.08)' : 'rgba(42,122,79,0.08)',
+                padding: '2px 6px', borderRadius: 10, display: 'inline-block'
+              }
+            }, `${sign}${extraAbs}% ${moreLess}`)
           )
         )
       );
@@ -265,25 +359,26 @@
         {k:'savings',v:savings.trueCost,extra:savings.extra},
         {k:'rosca',v:rosca.trueCost,extra:rosca.extra}
       ];
-      // Find minimum true cost; tie-break by lower extra percentage
       const bestKey = costs.reduce((a,b)=>{
         if (a.v !== b.v) return a.v < b.v ? a : b;
         return a.extra < b.extra ? a : b;
       }).k;
       const cards = [
-        {key:'loan', title:t.amortizedLoan, data:loan, color:'#6366f1'},
-        {key:'savings', title:t.compoundSavings, data:savings, color:'#14b8a6'},
-        {key:'rosca', title:t.committee, data:rosca, color:'#f59e0b'},
+        {key:'loan', title:t.amortizedLoan, data:loan, color:'var(--loan)', soft:'var(--loan-soft)', kind:'loan'},
+        {key:'savings', title:t.compoundSavings, data:savings, color:'var(--savings)', soft:'var(--savings-soft)', kind:'savings'},
+        {key:'rosca', title:t.committee, data:rosca, color:'var(--rosca)', soft:'var(--rosca-soft)', kind:'rosca'},
       ];
       return e('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 } },
-        cards.map(c => e(ResultCard, { key: c.key, title: c.title, monthly: c.data.monthly, totalPaid: c.data.totalPaid, trueCost: c.data.trueCost, extra: c.data.extra, color: c.color, isBest: bestKey===c.key, t, isRTL }))
+        cards.map(c => e(ResultCard, { key: c.key, title: c.title, monthly: c.data.monthly, totalPaid: c.data.totalPaid, trueCost: c.data.trueCost, extra: c.data.extra, color: c.color, softColor: c.soft, kind: c.kind, isBest: bestKey===c.key, t, isRTL }))
       );
     }
+
+    const COLOR_MAP = { 'var(--loan)': '#3B4C8C', 'var(--savings)': '#1F7A6C', 'var(--rosca)': '#B8792E' };
+    function resolveColor(c) { return COLOR_MAP[c] || c; }
 
     function CashOutflowChart({ data, t, duration, roscaTurn, isRTL }) {
       const svgRef = useRef(null);
       const width = 480, height = 260;
-      // FIX: Increased right padding in RTL mode to prevent y-axis label cutoff
       const padding = { top: 30, right: isRTL ? 80 : 30, bottom: 50, left: isRTL ? 30 : 80 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
@@ -318,7 +413,7 @@
           }
           if (minDist < 40) {
             const d = data[closest];
-            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${t.month} ${d.month}</div><div style="color:#6366f1;margin-bottom:2px;">${t.amortizedLoan}: ${t.rs} ${Math.round(d.loan).toLocaleString()}</div><div style="color:#14b8a6;margin-bottom:2px;">${t.compoundSavings}: ${t.rs} ${Math.round(d.savings).toLocaleString()}</div><div style="color:#f59e0b;">${t.committee}: ${t.rs} ${Math.round(d.rosca).toLocaleString()}</div>`;
+            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${t.month} ${d.month}</div><div style="color:#8C9EE8;margin-bottom:2px;">${t.amortizedLoan}: ${t.rs} ${Math.round(d.loan).toLocaleString()}</div><div style="color:#5FC4AE;margin-bottom:2px;">${t.compoundSavings}: ${t.rs} ${Math.round(d.savings).toLocaleString()}</div><div style="color:#D9A867;">${t.committee}: ${t.rs} ${Math.round(d.rosca).toLocaleString()}</div>`;
             const tr = tooltip.getBoundingClientRect();
             let left = ev.clientX + 15, top = ev.clientY - 10;
             if (left + tr.width > window.innerWidth - 10) left = ev.clientX - tr.width - 15;
@@ -339,24 +434,24 @@
 
       const xTicks = isRTL ? [duration-1, Math.floor(duration*0.75), Math.floor(duration/2), Math.floor(duration/4), 0] : [0, Math.floor(duration/4), Math.floor(duration/2), Math.floor(duration*0.75), duration-1];
 
-      return e('div', { style: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-md)', flex: 1, minWidth: 280 } },
-        e('h3', { style: { fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' } }, t.cumulativeCashOutflow),
+      return e('div', { style: { background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '20px', border: '1px solid var(--rule)', boxShadow: 'var(--shadow-card)', flex: 1, minWidth: 280 } },
+        e('h3', { style: { fontSize: 14, fontWeight: 700, marginBottom: 18, color: 'var(--ink)', letterSpacing: '0.01em' } }, t.cumulativeCashOutflow),
         e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, style: { width: '100%', height: 'auto', maxHeight: 260, cursor: 'crosshair' } },
-          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: '#e5e7eb', strokeDasharray: '4 4', strokeWidth: 1 })),
-          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: '#9ca3af', fontFamily: 'var(--font-en)' }, fmtLabel(tick))),
-          xTicks.map((i) => e('text', { key: `xl${i}`, x: xScale(i), y: height - 15, textAnchor: 'middle', fontSize: 10, fill: '#9ca3af', fontFamily: 'var(--font-en)' }, `${t.month} ${data[i]?.month || i+1}`)),
-          e('path', { d: pathFor('loan'), fill: 'none', stroke: '#6366f1', strokeWidth: 2.5 }),
-          e('path', { d: pathFor('savings'), fill: 'none', stroke: '#14b8a6', strokeWidth: 2.5 }),
-          e('path', { d: pathFor('rosca'), fill: 'none', stroke: '#f59e0b', strokeWidth: 2.5 }),
+          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: 'var(--rule)', strokeDasharray: '3 4', strokeWidth: 1 })),
+          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, fmtLabel(tick))),
+          xTicks.map((i) => e('text', { key: `xl${i}`, x: xScale(i), y: height - 15, textAnchor: 'middle', fontSize: 10, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, `${t.month} ${data[i]?.month || i+1}`)),
+          e('path', { d: pathFor('loan'), fill: 'none', stroke: '#3B4C8C', strokeWidth: 2.25 }),
+          e('path', { d: pathFor('savings'), fill: 'none', stroke: '#1F7A6C', strokeWidth: 2.25 }),
+          e('path', { d: pathFor('rosca'), fill: 'none', stroke: '#B8792E', strokeWidth: 2.25 }),
           data.length > 0 && roscaTurn > 0 && roscaTurn <= duration ? e('g', {},
-            e('line', { x1: payoutX, y1: padding.top, x2: payoutX, y2: height - padding.bottom, stroke: '#f59e0b', strokeDasharray: '6 4', strokeWidth: 1.5, opacity: 0.6 }),
-            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: 10, fill: '#f59e0b', fontWeight: 600, fontFamily: 'var(--font-en)' }, t.roscaPayout)
+            e('line', { x1: payoutX, y1: padding.top, x2: payoutX, y2: height - padding.bottom, stroke: '#B8792E', strokeDasharray: '5 4', strokeWidth: 1.25, opacity: 0.55 }),
+            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: 10, fill: '#B8792E', fontWeight: 600, fontFamily: 'var(--font-en)' }, t.roscaPayout)
           ) : null
         ),
-        e('div', { style: { display: 'flex', justifyContent: 'center', gap: 20, marginTop: 10, flexWrap: 'wrap' } },
-          [{c:'#6366f1',l:t.amortizedLoan},{c:'#14b8a6',l:t.compoundSavings},{c:'#f59e0b',l:t.committee}].map(item =>
-            e('div', { key: item.l, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' } },
-              e('span', { style: { width: 8, height: 8, borderRadius: '50%', background: item.c, display: 'inline-block' } }),
+        e('div', { style: { display: 'flex', justifyContent: 'center', gap: 20, marginTop: 12, flexWrap: 'wrap' } },
+          [{c:'#3B4C8C',l:t.amortizedLoan,k:'loan'},{c:'#1F7A6C',l:t.compoundSavings,k:'savings'},{c:'#B8792E',l:t.committee,k:'rosca'}].map(item =>
+            e('div', { key: item.l, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--ink-soft)' } },
+              e(RouteGlyph, { kind: item.k, color: item.c, size: 13 }),
               e('span', null, item.l)
             )
           )
@@ -367,7 +462,6 @@
     function TrueCostChart({ data, t, isRTL }) {
       const svgRef = useRef(null);
       const width = 480, height = 300;
-      // FIX: Increased padding for RTL to prevent y-axis label cutoff, and more bottom padding for labels
       const padding = { top: 50, right: isRTL ? 80 : 30, bottom: 70, left: isRTL ? 30 : 80 };
       const chartW = width - padding.left - padding.right;
       const chartH = height - padding.top - padding.bottom;
@@ -382,7 +476,6 @@
       const yMax = Math.ceil(maxVal / 50000) * 50000 || 50000;
 
       const n = data.length;
-      // FIX: Reduced bar width and increased gap to prevent overlap
       const barW = Math.min(chartW / (n * 2.5), 50);
       const totalBarsWidth = barW * n;
       const gap = (chartW - totalBarsWidth) / (n + 1);
@@ -408,7 +501,8 @@
           }
           if (minDist < barW / 2 + 10) {
             const d = data[closest];
-            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${d.name}</div><div style="color:${d.color};margin-bottom:2px;">${t.trueCost}: ${t.rs} ${d.value.toLocaleString()}</div><div style="color:${d.extra >= 0 ? '#ef4444' : '#22c55e'};">${d.extra >= 0 ? '+' : ''}${Math.abs(d.extra).toFixed(1)}% ${d.extra >= 0 ? t.more : t.less}</div>`;
+            const c = resolveColor(d.color);
+            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${nameMap[d.name] || d.name}</div><div style="color:${c};margin-bottom:2px;">${t.trueCost}: ${t.rs} ${d.value.toLocaleString()}</div><div style="color:${d.extra >= 0 ? '#E8897A' : '#7FCB9E'};">${d.extra >= 0 ? '+' : ''}${Math.abs(d.extra).toFixed(1)}% ${d.extra >= 0 ? t.more : t.less}</div>`;
             const tr = tooltip.getBoundingClientRect();
             let left = ev.clientX + 15, top = ev.clientY - 10;
             if (left + tr.width > window.innerWidth - 10) left = ev.clientX - tr.width - 15;
@@ -427,26 +521,22 @@
         return () => { svg.removeEventListener('mousemove', handleMove); svg.removeEventListener('mouseleave', handleLeave); };
       }, [data, isRTL, t]);
 
-      return e('div', { style: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-md)', flex: 1, minWidth: 280 } },
-        e('h3', { style: { fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' } }, t.trueCostTitle),
+      return e('div', { style: { background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '20px', border: '1px solid var(--rule)', boxShadow: 'var(--shadow-card)', flex: 1, minWidth: 280 } },
+        e('h3', { style: { fontSize: 14, fontWeight: 700, marginBottom: 18, color: 'var(--ink)', letterSpacing: '0.01em' } }, t.trueCostTitle),
         e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, style: { width: '100%', height: 'auto', maxHeight: 300, cursor: 'crosshair' } },
-          // Grid lines
-          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: '#e5e7eb', strokeDasharray: '4 4', strokeWidth: 1 })),
-          // Y-axis labels
-          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: '#9ca3af', fontFamily: 'var(--font-en)' }, `${t.rs} ${fmtLabel(tick)}`)),
-          // Bars with value labels above and name labels below
+          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: 'var(--rule)', strokeDasharray: '3 4', strokeWidth: 1 })),
+          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, `${t.rs} ${fmtLabel(tick)}`)),
           data.map((d, i) => {
             const barX = padding.left + gap + i * (barW + gap);
+            const c = resolveColor(d.color);
             const barY = yScale(d.value);
             const barHeight = yScale(0) - barY;
-            // FIX: Value label positioned well above the bar to avoid overlap
             const labelY = barY - 12;
-            // FIX: Name label positioned below the x-axis line with enough space
             const nameY = height - padding.bottom + 20;
             return e('g', { key: d.name },
-              e('rect', { x: barX, y: barY, width: barW, height: barHeight, fill: d.color, rx: 4, opacity: 0.85 }),
-              e('text', { x: barX + barW / 2, y: labelY, textAnchor: 'middle', fontSize: 11, fill: d.color, fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.rs} ${d.value.toLocaleString()}`),
-              e('text', { x: barX + barW / 2, y: nameY, textAnchor: 'middle', fontSize: 10, fill: '#6b7280', fontWeight: 600 }, nameMap[d.name] || d.name)
+              e('rect', { x: barX, y: barY, width: barW, height: barHeight, fill: c, rx: 3 }),
+              e('text', { x: barX + barW / 2, y: labelY, textAnchor: 'middle', fontSize: 11, fill: c, fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.rs} ${d.value.toLocaleString()}`),
+              e('text', { x: barX + barW / 2, y: nameY, textAnchor: 'middle', fontSize: 10, fill: 'var(--ink-soft)', fontWeight: 600 }, nameMap[d.name] || d.name)
             );
           })
         )
@@ -480,15 +570,35 @@
       const toggleLang = () => setLang(prev => prev === 'en' ? 'ur' : 'en');
 
       return e('div', { style: { minHeight: '100vh', display: 'flex', flexDirection: 'column' } },
-        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'var(--bg-dark)', borderBottom: '1px solid var(--border-dark)' } },
-          e('h1', { style: { fontSize: 20, fontWeight: 700, color: 'var(--text-light)', letterSpacing: '-0.5px' } }, t.title),
+        e('div', {
+          style: {
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '20px 28px', background: 'var(--ink)', borderBottom: '1px solid rgba(250,247,240,0.08)'
+          }
+        },
+          e('div', {},
+            e('h1', {
+              style: {
+                fontSize: 21, fontWeight: 700, color: 'var(--paper)', letterSpacing: '-0.01em',
+                fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-display)'
+              }
+            }, t.title),
+            e('p', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.5)', marginTop: 3, fontWeight: 400 } }, t.subtitle)
+          ),
           e('button', {
             onClick: toggleLang,
-            style: { background: 'rgba(255,255,255,0.1)', color: 'var(--text-light)', border: '1px solid rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-en)' }
+            style: {
+              background: 'rgba(250,247,240,0.08)', color: 'var(--paper)', border: '1px solid rgba(250,247,240,0.2)',
+              padding: '8px 18px', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'var(--font-en)', letterSpacing: '0.01em'
+            }
           }, lang === 'en' ? t.urdu : t.english)
         ),
-        e('div', { style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, padding: 20, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' } },
-          e(ControlPanel, { t, params, onChange: handleChange }),
+        e('div', {
+          className: 'fp-shell',
+          style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, padding: 22, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' }
+        },
+          e(ControlPanel, { t, params, onChange: handleChange, isRTL }),
           e('div', { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 } },
             e(ResultCards, { results, t, isRTL }),
             e('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap' } },
@@ -503,5 +613,6 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(e(App));
   </script>
-</body>
-</html>
+
+
+</body></html>
