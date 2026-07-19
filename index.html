@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family Fee Financing Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-ur: 'Noto Nastaliq Urdu', 'Inter', serif;
+      --bg-primary: #f5f5f0;
+      --bg-dark: #1e2330;
+      --bg-card: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7280;
+      --text-light: #ffffff;
+      --purple: #6366f1;
+      --teal: #14b8a6;
+      --amber: #f59e0b;
+      --border: #e5e7eb;
+      --border-dark: #374151;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    body {
+      font-family: var(--font-en);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.rtl {
+      font-family: var(--font-ur);
+      direction: rtl;
+    }
+    body.rtl .ltr-text { font-family: var(--font-en); direction: ltr; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 3px;
+      background: #374151; outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #ffffff; border: 2px solid currentColor;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .chart-tooltip {
+      position: fixed;
+      background: rgba(30, 35, 48, 0.95);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: var(--font-en);
+      pointer-events: none;
+      z-index: 1000;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      max-width: 280px;
+    }
+    .chart-tooltip.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="chart-tooltip" class="chart-tooltip"></div>
+  <script>
+    const { useState, useMemo, useCallback, useRef, useEffect } = React;
+
+    const en = {
+      title: "Family Fee Financing Simulator",
+      targetAmount: "Target Amount",
+      duration: "Duration (Months)",
+      inflation: "Expected Inflation (%)",
+      amortizedLoan: "Amortized Loan",
+      loanInterest: "Loan Interest (%)",
+      compoundSavings: "Compound Savings",
+      savingsYield: "Savings Yield (%)",
+      committee: "Committee (ROSCA)",
+      roscaTurn: "Your Committee Turn (Month)",
+      monthlyPayment: "Monthly Payment",
+      totalPaid: "Total Paid",
+      trueCost: "True Cost (Infl. Adj.)",
+      more: "more",
+      less: "less",
+      bestValue: "Best Value",
+      cumulativeCashOutflow: "Cumulative Cash Outflow",
+      trueCostTitle: "True Cost (Inflation Adjusted)",
+      trueCostBreakdown: "True Cost Breakdown (Inflation Adjusted)",
+      urdu: "اردو",
+      english: "English",
+      rs: "Rs",
+      month: "Month",
+      months: "months",
+      roscaPayout: "ROSCA Payout"
+    };
+    const ur = {
+      title: "فیملی فیس فنانسنگ سمیلیٹر",
+      targetAmount: "بڈف رقم",
+      duration: "مدت (مہینے)",
+      inflation: "متوقع افراط زر (%)",
+      amortizedLoan: "قرض (Amortized)",
+      loanInterest: "قرض سود (%)",
+      compoundSavings: "بچت (Compound)",
+      savingsYield: "بچت منافع (%)",
+      committee: "کمیٹی (ROSCA)",
+      roscaTurn: "آپ کی کمیٹی باری (مہینہ)",
+      monthlyPayment: "مہانہ قسط",
+      totalPaid: "کل ادائیگی",
+      trueCost: "حقیقی لاگت (افراط زر کے لحاظ سے)",
+      more: "زیادہ",
+      less: "کم",
+      bestValue: "بہترین انتخاب",
+      cumulativeCashOutflow: "مجموعی نقد اخراجات",
+      trueCostTitle: "حقیقی لاگت (افراط زر کے لحاظ سے)",
+      trueCostBreakdown: "اصل لاگت (افراط زر کے لحاظ سے)",
+      urdu: "English",
+      english: "اردو",
+      rs: "روپیہ",
+      month: "مہینہ",
+      months: "مہینے",
+      roscaPayout: "کمیٹی کی ادائیگی"
+    };
+    const translations = { en, ur };
+
+    function useFinancingCalc({ targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn }) {
+      return useMemo(() => {
+        const P = targetAmount, n = duration;
+        const r_inf = inflation / 100, r_loan = loanInterest / 100, r_save = savingsYield / 100;
+        const r_inf_m = r_inf / 12;
+
+        const mrl = r_loan / 12;
+        const loanMonthly = mrl === 0 ? P / n : P * (mrl * Math.pow(1 + mrl, n)) / (Math.pow(1 + mrl, n) - 1);
+        const loanTotal = loanMonthly * n;
+        let loanPV = 0;
+        for (let m = 1; m <= n; m++) loanPV += loanMonthly / Math.pow(1 + r_inf_m, m);
+        const loanTrue = loanPV;
+        const loanExtra = ((loanTotal - P) / P * 100);
+
+        const mrs = r_save / 12;
+        const saveMonthly = mrs === 0 ? P / n : P / (((Math.pow(1 + mrs, n) - 1) / mrs));
+        const saveTotal = saveMonthly * n;
+        let savePV = 0;
+        for (let m = 1; m <= n; m++) savePV += saveMonthly / Math.pow(1 + r_inf_m, m);
+        const saveTrue = savePV;
+        const saveExtra = ((saveTotal - P) / P * 100);
+
+        const roscaMonthly = P / n;
+        const roscaTotal = roscaMonthly * n;
+        let roscaPV = 0;
+        for (let m = 1; m <= n; m++) roscaPV += roscaMonthly / Math.pow(1 + r_inf_m, m);
+        const roscaTrue = roscaPV;
+        const roscaExtra = ((roscaTotal - P) / P * 100);
+
+        const cashOut = [];
+        for (let m = 1; m <= n; m++) {
+          cashOut.push({ month: m, loan: loanMonthly * m, savings: saveMonthly * m, rosca: roscaMonthly * m });
+        }
+
+        return {
+          loan: { monthly: Math.round(loanMonthly), totalPaid: Math.round(loanTotal), trueCost: Math.round(loanTrue), extra: loanExtra },
+          savings: { monthly: Math.round(saveMonthly), totalPaid: Math.round(saveTotal), trueCost: Math.round(saveTrue), extra: saveExtra },
+          rosca: { monthly: Math.round(roscaMonthly), totalPaid: Math.round(roscaTotal), trueCost: Math.round(roscaTrue), extra: roscaExtra },
+          cashOutflow: cashOut,
+          trueCostData: [
+            { name: 'Amortized Loan', value: Math.round(loanTrue), color: '#6366f1', extra: loanExtra },
+            { name: 'Compound Savings', value: Math.round(saveTrue), color: '#14b8a6', extra: saveExtra },
+            { name: 'Committee (ROSCA)', value: Math.round(roscaTrue), color: '#f59e0b', extra: roscaExtra },
+          ]
+        };
+      }, [targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn]);
+    }
+
+    function e(type, props, ...children) {
+      return React.createElement(type, props, ...children);
+    }
+
+    function Slider({ label, value, min, max, step, onChange, color, badge }) {
+      return e('div', { style: { marginBottom: 20 } },
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 } },
+          e('span', { style: { fontSize: 13, color: 'var(--text-light)', fontWeight: 500, opacity: 0.9 } }, label),
+          e('span', { style: { background: color + '22', color: color, padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-en)' } }, badge || value)
+        ),
+        e('input', { type: 'range', min, max, step, value, onChange: (ev) => onChange(Number(ev.target.value)), style: { width: '100%', color: color } })
+      );
+    }
+
+    function SectionHeader({ color, title }) {
+      return e('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 22, marginBottom: 12, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' } },
+        e('span', { style: { width: 12, height: 12, borderRadius: '50%', background: color, display: 'inline-block' } }),
+        e('span', { style: { color: 'var(--text-light)', fontSize: 14, fontWeight: 600 } }, title)
+      );
+    }
+
+    function ControlPanel({ t, params, onChange }) {
+      const fmt = (v) => `Rs ${v.toLocaleString()}`;
+      return e('div', { style: { background: 'var(--bg-dark)', borderRadius: 'var(--radius-xl)', padding: '24px 20px', color: 'var(--text-light)', minWidth: 260, maxWidth: 320, flexShrink: 0 } },
+        
+        e('div', { style: { marginBottom: 18 } },
+          e('label', { style: { display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.55)', marginBottom: 6, fontWeight: 500 } }, t.targetAmount),
+          e('input', { type: 'text', value: fmt(params.targetAmount), onChange: (ev) => { const val = Number(ev.target.value.replace(/[^0-9]/g, '')); onChange('targetAmount', val || 0); }, style: { width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-dark)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-light)', fontSize: 15, fontFamily: 'var(--font-en)', outline: 'none' } })
+        ),
+        e(Slider, { label: t.duration, value: params.duration, min: 3, max: 60, step: 1, onChange: (v) => onChange('duration', v), color: '#f59e0b', badge: `${params.duration}` }),
+        e(Slider, { label: t.inflation, value: params.inflation, min: 0, max: 25, step: 0.1, onChange: (v) => onChange('inflation', v), color: '#f59e0b', badge: `${params.inflation}%` }),
+        e(SectionHeader, { color: '#6366f1', title: t.amortizedLoan }),
+        e(Slider, { label: t.loanInterest, value: params.loanInterest, min: 0, max: 30, step: 0.1, onChange: (v) => onChange('loanInterest', v), color: '#6366f1', badge: `${params.loanInterest}%` }),
+        e(SectionHeader, { color: '#14b8a6', title: t.compoundSavings }),
+        e(Slider, { label: t.savingsYield, value: params.savingsYield, min: 0, max: 20, step: 0.1, onChange: (v) => onChange('savingsYield', v), color: '#14b8a6', badge: `${params.savingsYield}%` }),
+        e(SectionHeader, { color: '#f59e0b', title: t.committee }),
+        e(Slider, { label: t.roscaTurn, value: params.roscaTurn, min: 1, max: params.duration, step: 1, onChange: (v) => onChange('roscaTurn', v), color: '#f59e0b', badge: `${params.roscaTurn}` })
+      );
+    }
+
+    function ResultCard({ title, monthly, totalPaid, trueCost, extra, color, isBest, t, isRTL }) {
+      const sign = extra >= 0 ? '+' : '';
+      const extraAbs = Math.abs(extra).toFixed(1);
+      const moreLess = extra >= 0 ? t.more : t.less;
+      const badgeStyle = { position: 'absolute', top: -2, background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: '0 0 6px 6px', textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'var(--font-en)' };
+      badgeStyle[isRTL ? 'left' : 'right'] = 12;
+
+      return e('div', { style: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '20px 16px', borderTop: `3px solid ${color}`, boxShadow: 'var(--shadow-md)', position: 'relative', flex: 1, minWidth: 190 } },
+        isBest ? e('div', { style: badgeStyle }, t.bestValue) : null,
+        e('div', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 } },
+          e('span', { style: { width: 10, height: 10, borderRadius: '50%', background: color, display: 'inline-block' } }),
+          e('h3', { style: { fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' } }, title)
+        ),
+        e('p', { style: { fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, fontWeight: 500 } }, t.monthlyPayment),
+        e('p', { style: { fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14, fontFamily: 'var(--font-en)', lineHeight: 1.1 } }, `${t.rs} ${monthly.toLocaleString()}`),
+        e('div', { style: { borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', gap: 8 } },
+          e('div', {},
+            e('p', { style: { fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2, fontWeight: 500 } }, t.totalPaid),
+            e('p', { style: { fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-en)' } }, `${t.rs} ${totalPaid.toLocaleString()}`)
+          ),
+          e('div', { style: { textAlign: 'right' } },
+            e('p', { style: { fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2, fontWeight: 500 } }, t.trueCost),
+            e('p', { style: { fontSize: 13, fontWeight: 700, color: color, fontFamily: 'var(--font-en)' } }, `${t.rs} ${trueCost.toLocaleString()}`),
+            e('span', { style: { fontSize: 10, color: extra >= 0 ? '#ef4444' : '#22c55e', marginTop: 2, fontWeight: 600, fontFamily: 'var(--font-en)', background: extra >= 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)', padding: '2px 6px', borderRadius: 10, display: 'inline-block' } }, `${sign}${extraAbs}% ${moreLess}`)
+          )
+        )
+      );
+    }
+
+    function ResultCards({ results, t, isRTL }) {
+      const { loan, savings, rosca } = results;
+      const costs = [{k:'loan',v:loan.trueCost},{k:'savings',v:savings.trueCost},{k:'rosca',v:rosca.trueCost}];
+      const bestKey = costs.reduce((a,b)=>a.v<b.v?a:b).k;
+      const cards = [
+        {key:'loan', title:t.amortizedLoan, data:loan, color:'#6366f1'},
+        {key:'savings', title:t.compoundSavings, data:savings, color:'#14b8a6'},
+        {key:'rosca', title:t.committee, data:rosca, color:'#f59e0b'},
+      ];
+      return e('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 } },
+        cards.map(c => e(ResultCard, { key: c.key, title: c.title, monthly: c.data.monthly, totalPaid: c.data.totalPaid, trueCost: c.data.trueCost, extra: c.data.extra, color: c.color, isBest: bestKey===c.key, t, isRTL }))
+      );
+    }
+
+    function CashOutflowChart({ data, t, duration, roscaTurn, isRTL }) {
+      const svgRef = useRef(null);
+      const width = 480, height = 260;
+      // FIX: Increased right padding in RTL mode to prevent y-axis label cutoff
+      const padding = { top: 30, right: isRTL ? 80 : 30, bottom: 50, left: isRTL ? 30 : 80 };
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+      const maxVal = Math.max(...data.map(d => Math.max(d.loan, d.savings, d.rosca)));
+      const yMax = Math.ceil(maxVal / 100000) * 100000 || 100000;
+
+      const xScale = (i) => isRTL ? (width - padding.right) - (i / (data.length - 1)) * chartW : padding.left + (i / (data.length - 1)) * chartW;
+      const yScale = (v) => padding.top + chartH - (v / yMax) * chartH;
+
+      const pathFor = (key) => {
+        let d = `M ${xScale(0)} ${yScale(data[0][key])}`;
+        for (let i = 1; i < data.length; i++) d += ` L ${xScale(i)} ${yScale(data[i][key])}`;
+        return d;
+      };
+
+      const yTicks = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
+      const fmtLabel = (v) => v >= 100000 ? `Rs${(v/100000).toFixed(0)}L` : v >= 1000 ? `Rs${(v/1000).toFixed(0)}k` : `Rs${v}`;
+      const payoutIndex = Math.min(roscaTurn - 1, data.length - 1);
+      const payoutX = xScale(payoutIndex);
+
+      useEffect(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        const tooltip = document.getElementById('chart-tooltip');
+        const handleMove = (ev) => {
+          const rect = svg.getBoundingClientRect();
+          const svgMouseX = ((ev.clientX - rect.left) / rect.width) * width;
+          let closest = 0, minDist = Infinity;
+          for (let i = 0; i < data.length; i++) {
+            const dist = Math.abs(xScale(i) - svgMouseX);
+            if (dist < minDist) { minDist = dist; closest = i; }
+          }
+          if (minDist < 40) {
+            const d = data[closest];
+            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${t.month} ${d.month}</div><div style="color:#6366f1;margin-bottom:2px;">${t.amortizedLoan}: ${t.rs} ${Math.round(d.loan).toLocaleString()}</div><div style="color:#14b8a6;margin-bottom:2px;">${t.compoundSavings}: ${t.rs} ${Math.round(d.savings).toLocaleString()}</div><div style="color:#f59e0b;">${t.committee}: ${t.rs} ${Math.round(d.rosca).toLocaleString()}</div>`;
+            const tr = tooltip.getBoundingClientRect();
+            let left = ev.clientX + 15, top = ev.clientY - 10;
+            if (left + tr.width > window.innerWidth - 10) left = ev.clientX - tr.width - 15;
+            if (top + tr.height > window.innerHeight - 10) top = ev.clientY - tr.height - 10;
+            if (top < 10) top = 10;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.classList.add('visible');
+          } else {
+            tooltip.classList.remove('visible');
+          }
+        };
+        const handleLeave = () => tooltip.classList.remove('visible');
+        svg.addEventListener('mousemove', handleMove);
+        svg.addEventListener('mouseleave', handleLeave);
+        return () => { svg.removeEventListener('mousemove', handleMove); svg.removeEventListener('mouseleave', handleLeave); };
+      }, [data, isRTL, t]);
+
+      const xTicks = isRTL ? [duration-1, Math.floor(duration*0.75), Math.floor(duration/2), Math.floor(duration/4), 0] : [0, Math.floor(duration/4), Math.floor(duration/2), Math.floor(duration*0.75), duration-1];
+
+      return e('div', { style: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-md)', flex: 1, minWidth: 280 } },
+        e('h3', { style: { fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' } }, t.cumulativeCashOutflow),
+        e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, style: { width: '100%', height: 'auto', maxHeight: 260, cursor: 'crosshair' } },
+          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: '#e5e7eb', strokeDasharray: '4 4', strokeWidth: 1 })),
+          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: '#9ca3af', fontFamily: 'var(--font-en)' }, fmtLabel(tick))),
+          xTicks.map((i) => e('text', { key: `xl${i}`, x: xScale(i), y: height - 15, textAnchor: 'middle', fontSize: 10, fill: '#9ca3af', fontFamily: 'var(--font-en)' }, `${t.month} ${data[i]?.month || i+1}`)),
+          e('path', { d: pathFor('loan'), fill: 'none', stroke: '#6366f1', strokeWidth: 2.5 }),
+          e('path', { d: pathFor('savings'), fill: 'none', stroke: '#14b8a6', strokeWidth: 2.5 }),
+          e('path', { d: pathFor('rosca'), fill: 'none', stroke: '#f59e0b', strokeWidth: 2.5 }),
+          data.length > 0 && roscaTurn > 0 && roscaTurn <= duration ? e('g', {},
+            e('line', { x1: payoutX, y1: padding.top, x2: payoutX, y2: height - padding.bottom, stroke: '#f59e0b', strokeDasharray: '6 4', strokeWidth: 1.5, opacity: 0.6 }),
+            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: 10, fill: '#f59e0b', fontWeight: 600, fontFamily: 'var(--font-en)' }, t.roscaPayout)
+          ) : null
+        ),
+        e('div', { style: { display: 'flex', justifyContent: 'center', gap: 20, marginTop: 10, flexWrap: 'wrap' } },
+          [{c:'#6366f1',l:t.amortizedLoan},{c:'#14b8a6',l:t.compoundSavings},{c:'#f59e0b',l:t.committee}].map(item =>
+            e('div', { key: item.l, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' } },
+              e('span', { style: { width: 8, height: 8, borderRadius: '50%', background: item.c, display: 'inline-block' } }),
+              e('span', null, item.l)
+            )
+          )
+        )
+      );
+    }
+
+    function TrueCostChart({ data, t, isRTL }) {
+      const svgRef = useRef(null);
+      const width = 480, height = 300;
+      // FIX: Increased padding for RTL to prevent y-axis label cutoff, and more bottom padding for labels
+      const padding = { top: 50, right: isRTL ? 80 : 30, bottom: 70, left: isRTL ? 30 : 80 };
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+
+      const nameMap = {
+        'Amortized Loan': t.amortizedLoan,
+        'Compound Savings': t.compoundSavings,
+        'Committee (ROSCA)': t.committee
+      };
+
+      const maxVal = Math.max(...data.map(d => d.value));
+      const yMax = Math.ceil(maxVal / 50000) * 50000 || 50000;
+
+      const n = data.length;
+      // FIX: Reduced bar width and increased gap to prevent overlap
+      const barW = Math.min(chartW / (n * 2.5), 50);
+      const totalBarsWidth = barW * n;
+      const gap = (chartW - totalBarsWidth) / (n + 1);
+
+      const yScale = (v) => padding.top + chartH - (v / yMax) * chartH;
+
+      const fmtLabel = (v) => v >= 100000 ? `${(v/100000).toFixed(1)}L` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
+
+      const yTicks = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
+
+      useEffect(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        const tooltip = document.getElementById('chart-tooltip');
+        const handleMove = (ev) => {
+          const rect = svg.getBoundingClientRect();
+          const svgMouseX = ((ev.clientX - rect.left) / rect.width) * width;
+          let closest = 0, minDist = Infinity;
+          for (let i = 0; i < data.length; i++) {
+            const barX = padding.left + gap + i * (barW + gap) + barW / 2;
+            const dist = Math.abs(barX - svgMouseX);
+            if (dist < minDist) { minDist = dist; closest = i; }
+          }
+          if (minDist < barW / 2 + 10) {
+            const d = data[closest];
+            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${d.name}</div><div style="color:${d.color};margin-bottom:2px;">${t.trueCost}: ${t.rs} ${d.value.toLocaleString()}</div><div style="color:${d.extra >= 0 ? '#ef4444' : '#22c55e'};">${d.extra >= 0 ? '+' : ''}${Math.abs(d.extra).toFixed(1)}% ${d.extra >= 0 ? t.more : t.less}</div>`;
+            const tr = tooltip.getBoundingClientRect();
+            let left = ev.clientX + 15, top = ev.clientY - 10;
+            if (left + tr.width > window.innerWidth - 10) left = ev.clientX - tr.width - 15;
+            if (top + tr.height > window.innerHeight - 10) top = ev.clientY - tr.height - 10;
+            if (top < 10) top = 10;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.classList.add('visible');
+          } else {
+            tooltip.classList.remove('visible');
+          }
+        };
+        const handleLeave = () => tooltip.classList.remove('visible');
+        svg.addEventListener('mousemove', handleMove);
+        svg.addEventListener('mouseleave', handleLeave);
+        return () => { svg.removeEventListener('mousemove', handleMove); svg.removeEventListener('mouseleave', handleLeave); };
+      }, [data, isRTL, t]);
+
+      return e('div', { style: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-md)', flex: 1, minWidth: 280 } },
+        e('h3', { style: { fontSize: 15, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' } }, t.trueCostTitle),
+        e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, style: { width: '100%', height: 'auto', maxHeight: 300, cursor: 'crosshair' } },
+          // Grid lines
+          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: '#e5e7eb', strokeDasharray: '4 4', strokeWidth: 1 })),
+          // Y-axis labels
+          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: '#9ca3af', fontFamily: 'var(--font-en)' }, `${t.rs} ${fmtLabel(tick)}`)),
+          // Bars with value labels above and name labels below
+          data.map((d, i) => {
+            const barX = padding.left + gap + i * (barW + gap);
+            const barY = yScale(d.value);
+            const barHeight = yScale(0) - barY;
+            // FIX: Value label positioned well above the bar to avoid overlap
+            const labelY = barY - 12;
+            // FIX: Name label positioned below the x-axis line with enough space
+            const nameY = height - padding.bottom + 20;
+            return e('g', { key: d.name },
+              e('rect', { x: barX, y: barY, width: barW, height: barHeight, fill: d.color, rx: 4, opacity: 0.85 }),
+              e('text', { x: barX + barW / 2, y: labelY, textAnchor: 'middle', fontSize: 11, fill: d.color, fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.rs} ${d.value.toLocaleString()}`),
+              e('text', { x: barX + barW / 2, y: nameY, textAnchor: 'middle', fontSize: 10, fill: '#6b7280', fontWeight: 600 }, nameMap[d.name] || d.name)
+            );
+          })
+        )
+      );
+    }
+
+    function App() {
+      const [lang, setLang] = useState('en');
+      const t = translations[lang];
+      const isRTL = lang === 'ur';
+
+      const [params, setParams] = useState({
+        targetAmount: 500000,
+        duration: 24,
+        inflation: 8,
+        loanInterest: 12,
+        savingsYield: 6,
+        roscaTurn: 12
+      });
+
+      const handleChange = useCallback((key, value) => {
+        setParams(prev => ({ ...prev, [key]: value }));
+      }, []);
+
+      const results = useFinancingCalc(params);
+
+      useEffect(() => {
+        document.body.classList.toggle('rtl', isRTL);
+      }, [isRTL]);
+
+      const toggleLang = () => setLang(prev => prev === 'en' ? 'ur' : 'en');
+
+      return e('div', { style: { minHeight: '100vh', display: 'flex', flexDirection: 'column' } },
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'var(--bg-dark)', borderBottom: '1px solid var(--border-dark)' } },
+          e('h1', { style: { fontSize: 20, fontWeight: 700, color: 'var(--text-light)', letterSpacing: '-0.5px' } }, t.title),
+          e('button', {
+            onClick: toggleLang,
+            style: { background: 'rgba(255,255,255,0.1)', color: 'var(--text-light)', border: '1px solid rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-en)' }
+          }, lang === 'en' ? t.urdu : t.english)
+        ),
+        e('div', { style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, padding: 20, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' } },
+          e(ControlPanel, { t, params, onChange: handleChange }),
+          e('div', { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 } },
+            e(ResultCards, { results, t, isRTL }),
+            e('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap' } },
+              e(CashOutflowChart, { data: results.cashOutflow, t, duration: params.duration, roscaTurn: params.roscaTurn, isRTL }),
+              e(TrueCostChart, { data: results.trueCostData, t, isRTL })
+            )
+          )
+        )
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(e(App));
+  </script>
+</body>
+</html>
