@@ -1,51 +1,87 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Family Fee Financing Simulator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Poora Naqsha</title>
+
+  <!-- Framework: Preact 10.29.8 + hooks + compat, vendored locally (replaces React 18 UMD
+       from unpkg.com). preact/compat exposes React/ReactDOM-compatible APIs, so app code is
+       unchanged apart from render(). ~9 KB brotli vs ~46 KB for react + react-dom. -->
+  <script src="assets/preact.umd.js"></script>
+  <script src="assets/hooks.umd.js"></script>
+  <script src="assets/compat.umd.js"></script>
+  <script>
+    // The app is written against the React / ReactDOM globals; point them at preact/compat.
+    window.React = window.preactCompat;
+    window.ReactDOM = window.preactCompat;
+  </script>
+
+  <!-- Financing model: pure, DOM-free, unit-tested (test/model.test.mjs). -->
+  <script src="model.js"></script>
+
+  <!-- Vercel Web Analytics: same-origin on the hosted build, deferred, and guarded by the
+       queue stub below. With no network it 404s silently and the app is unaffected. -->
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Self-hosted, subset fonts — no network dependency, no Google Fonts.
+       Inter: weights 400 + 600 only, Latin range used by the UI.
+       Noto Nastaliq Urdu: single weight (500), subset to the Urdu repertoire this app uses.
+       Regenerate with the pyftsubset commands in assets/BUILD.md after adding new Urdu text.
+       Source Serif 4 was dropped — the one heading falls back to Georgia. */
+    @font-face {
+      font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap;
+      src: url('assets/inter-400.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap;
+      src: url('assets/inter-600.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Noto Nastaliq Urdu'; font-style: normal; font-weight: 400 700; font-display: swap;
+      src: url('assets/nnu-500.woff2') format('woff2');
+    }
+
     :root {
       --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-ur: 'Noto Nastaliq Urdu', 'Inter', serif;
-      --font-display: 'Source Serif 4', Georgia, serif;
+      --font-ur: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', serif;
+      --font-display: Georgia, 'Times New Roman', serif;
 
-      /* Ledger palette */
-      --paper: #FAF7F0;
+      /* Ledger palette. Base surfaces are a near-neutral warm grey (the old cream
+         + tan combination read as generic); a single marigold accent carries the
+         warmth. Contrast ratios in the comments were re-checked after the shift. */
+      --paper: #F2F1EE;
       --paper-raised: #FFFFFF;
-      --ink: #1C1B19;
-      --ink-soft: #57534E;
-      --ink-faint: #A39E93;
-      --rule: #E4DFD3;
-      --rule-strong: #D2CBB9;
+      --ink: #17181A;
+      --ink-soft: #52535A;
+      --ink-faint: #5E5F65;      /* 5.4:1 on --paper (was #A39E93, 2.5:1, failed WCAG AA) */
+      --rule: #E3E2DE;
+      --rule-strong: #CDCCC7;
 
-      /* Route colors — muted, ledger-appropriate, not neon SaaS */
-      --loan: #3B4C8C;
-      --loan-soft: #EEF0F8;
-      --savings: #1F7A6C;
-      --savings-soft: #EAF4F1;
-      --rosca: #B8792E;
-      --rosca-soft: #FAF1E4;
+      /* Route colors — the single source of truth. Every chart line, bar, glyph,
+         slider, section header and legend reads one of these (6d).
+           <route>        strong ink-side mark colour (>=3:1 on --paper)
+           <route>-bright  lighter tint for the dark control panel (>=6.7:1 on --ink)
+           <route>-soft    faint fill for card chips / backgrounds */
+      --loan: #3B4C8C;   --loan-bright: #8C9EE8;   --loan-soft: #EDEEF6;
+      --savings: #1F7A6C; --savings-bright: #5FC4AE; --savings-soft: #E8F2EF;
+      --rosca: #9E6014;   --rosca-bright: #E0A23D;   --rosca-soft: #F6EFE2;
 
       --good: #2A7A4F;
       --bad: #B0442E;
+      --accent: #E0A23D;        /* general input accent on the dark control panel (8.2:1 on --ink) */
 
-      --radius-sm: 4px;
-      --radius-md: 6px;
-      --radius-lg: 8px;
-      --shadow-card: 0 1px 2px rgba(28,27,25,0.04), 0 1px 0 rgba(28,27,25,0.03);
-      --shadow-raised: 0 4px 16px rgba(28,27,25,0.06), 0 1px 2px rgba(28,27,25,0.05);
+      --radius-sm: 0px;
+      --radius-md: 0px;
+      --radius-lg: 0px;
+      --shadow-card: 0 1px 2px rgba(23,24,26,0.05), 0 1px 0 rgba(23,24,26,0.03);
+      --shadow-raised: 0 4px 16px rgba(23,24,26,0.07), 0 1px 2px rgba(23,24,26,0.05);
     }
     html { background: var(--paper); }
     body {
@@ -59,30 +95,42 @@
       font-family: var(--font-ur);
       direction: rtl;
     }
-    body.rtl .ltr-text { font-family: var(--font-en); direction: ltr; }
 
+    /* Sliders: the input is transparent and only carries the pointer hit area
+       (24px, 32px on coarse pointers). The visible 4px rail and the square thumb
+       are pseudo-elements, so neither overflows into the rows above or below.
+       The previous padding + negative-margin trick made the thumb sit across the
+       label of the next row. */
     input[type="range"] {
       -webkit-appearance: none; appearance: none;
-      width: 100%; height: 4px; border-radius: 2px;
-      background: var(--rule-strong); outline: none;
+      width: 100%; height: 24px; margin: 0;
+      background: transparent; outline: none; cursor: pointer;
+      touch-action: pan-y;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px; border-radius: 0; background: var(--rule-strong);
+    }
+    input[type="range"]::-moz-range-track {
+      height: 4px; border-radius: 0; background: var(--rule-strong);
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: var(--paper-raised); border: 2.5px solid currentColor;
-      cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-      margin-top: -1px;
+      width: 16px; height: 16px; border-radius: 0; margin-top: -6px;
+      background: var(--paper-raised); border: 2px solid currentColor;
+      cursor: pointer; box-shadow: 0 1px 2px rgba(23,24,26,0.28);
     }
     input[type="range"]::-moz-range-thumb {
-      width: 16px; height: 16px; border-radius: 50%;
-      background: var(--paper-raised); border: 2.5px solid currentColor;
-      cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      width: 16px; height: 16px; border-radius: 0; box-sizing: border-box;
+      background: var(--paper-raised); border: 2px solid currentColor;
+      cursor: pointer; box-shadow: 0 1px 2px rgba(23,24,26,0.28);
     }
-    input[type="range"]:focus-visible {
-      box-shadow: 0 0 0 3px rgba(59,76,140,0.25);
+    @media (pointer: coarse) {
+      input[type="range"] { height: 32px; }
+      input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; }
+      input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
     }
 
-    button:focus-visible, input:focus-visible {
+    button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
       outline: 2px solid var(--loan);
       outline-offset: 2px;
     }
@@ -93,11 +141,11 @@
       color: var(--paper);
       padding: 10px 14px;
       border-radius: var(--radius-md);
-      font-size: 12px;
+      font-size: 12.5px;
       font-family: var(--font-en);
       pointer-events: none;
       z-index: 1000;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.28);
       white-space: nowrap;
       opacity: 0;
       transition: opacity 0.12s ease;
@@ -105,14 +153,33 @@
     }
     .chart-tooltip.visible { opacity: 1; }
 
+    /* Browser surfaces themed from the palette (craft floor). */
     ::selection { background: rgba(59,76,140,0.18); }
+    ::-webkit-scrollbar { width: 11px; height: 11px; }
+    ::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 0; border: 3px solid var(--paper); }
+    ::-webkit-scrollbar-track { background: transparent; }
+    * { scrollbar-color: var(--rule-strong) transparent; scrollbar-width: thin; }
 
+    .fp-shell { padding-left: max(22px, env(safe-area-inset-left)); padding-right: max(22px, env(safe-area-inset-right)); }
+
+    /* Tablet / narrow: stack the shell. */
     @media (max-width: 860px) {
       .fp-shell { flex-direction: column !important; }
       .fp-control-panel { max-width: none !important; width: 100% !important; }
     }
+    /* Phone: single column throughout, tighter chrome, charts full width. */
+    @media (max-width: 560px) {
+      .fp-header { padding: 14px 16px !important; }
+      .fp-shell { padding: 14px !important; gap: 14px !important; }
+      .fp-charts { flex-direction: column !important; }
+      .fp-charts > * { min-width: 0 !important; }
+      .fp-cards > * { min-width: 0 !important; flex-basis: 100% !important; }
+      .fp-control-panel { padding: 20px 16px !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
   </style>
-<base target="_blank">
 </head>
 <body>
   <div id="root"></div>
@@ -121,7 +188,8 @@
     const { useState, useMemo, useCallback, useRef, useEffect } = React;
 
     const en = {
-      title: "Family Fee Financing Simulator",
+      title: "Poora Naqsha",
+      subtitle: "Three routes to the fee, start to finish",
       targetAmount: "Target Amount",
       duration: "Duration (Months)",
       inflation: "Expected Inflation (%)",
@@ -133,105 +201,121 @@
       roscaTurn: "Your Committee Turn (Month)",
       monthlyPayment: "Monthly Payment",
       totalPaid: "Total Paid",
-      trueCost: "True Cost (Infl. Adj.)",
-      more: "more",
-      less: "less",
-      bestValue: "Best Value",
-      cumulativeCashOutflow: "Cumulative Cash Outflow",
-      trueCostTitle: "True Cost (Inflation Adjusted)",
-      trueCostBreakdown: "True Cost Breakdown (Inflation Adjusted)",
-      urdu: "اردو",
-      english: "English",
+      trueCost: "Real Cost of Route",
+      ofFee: "of the fee",
+      youGain: "you gain",
+      moneyInHand: "Money in hand",
+      now: "now",
+      monthsInHand: "in {n} mo",
+      interestType: "Interest type",
+      flat: "Flat",
+      reducing: "Reducing",
+      effAPR: "Effective APR",
+      bestValue: "Lowest Cost",
+      roscaNote: "Assumes the pot equals the fee, the committee runs the full duration, and you keep contributing after your turn.",
+      cumulativeCashOutflow: "What you pay in, month by month",
+      trueCostTitle: "Real cost of each route",
+      roscaPayout: "You collect the pot",
+      inputs: "Inputs",
+      switchLanguageLabel: "اردو",
       rs: "Rs",
       month: "Month",
       months: "months",
-      roscaPayout: "ROSCA Payout",
-      inputs: "Inputs",
-      routes: "Financing routes"
+      takeawayCost: "{route} has the lowest real cost",
+      takeawayAhead: "{route} leaves you ahead by {amt}",
+      takeawaySoonest: "You hold the fee soonest with {route}",
+      scrubHint: "Tap and drag across the chart for any month",
+      breakEven: "breakeven",
+      cashChartSummary: "By month {n}: loan {loan}, savings {savings}, committee {rosca}.",
+      feedbackQ: "Did this comparison help you decide?",
+      yes: "Yes",
+      no: "No",
+      feedbackThanks: "Thank you. Noted."
     };
     const ur = {
-      title: "فیملی فیس فنانسنگ سمیلیٹر",
-      subtitle: "اسکول فیس کی حقیقی لاگت، تین طریقوں سے موازنہ",
-      targetAmount: "بڈف رقم",
+      title: "پورا نقشہ",
+      subtitle: "فیس کے تین راستے، شروع سے آخر تک",
+      targetAmount: "ہدف رقم",
       duration: "مدت (مہینے)",
       inflation: "متوقع افراط زر (%)",
-      amortizedLoan: "قرض (Amortized)",
-      loanInterest: "قرض سود (%)",
-      compoundSavings: "بچت (Compound)",
-      savingsYield: "بچت منافع (%)",
+      amortizedLoan: "قسط وار قرض",
+      loanInterest: "شرحِ سود (%)",
+      compoundSavings: "مرکب بچت",
+      savingsYield: "منافع کی شرح (%)",
       committee: "کمیٹی (ROSCA)",
-      roscaTurn: "آپ کی کمیٹی باری (مہینہ)",
-      monthlyPayment: "مہانہ قسط",
+      roscaTurn: "کمیٹی میں آپ کی باری (مہینہ)",
+      monthlyPayment: "ماہانہ قسط",
       totalPaid: "کل ادائیگی",
-      trueCost: "حقیقی لاگت (افراط زر کے لحاظ سے)",
-      more: "زیادہ",
-      less: "کم",
-      bestValue: "بہترین انتخاب",
-      cumulativeCashOutflow: "مجموعی نقد اخراجات",
-      trueCostTitle: "حقیقی لاگت (افراط زر کے لحاظ سے)",
-      trueCostBreakdown: "اصل لاگت (افراط زر کے لحاظ سے)",
-      urdu: "English",
-      english: "اردو",
-      rs: "روپیہ",
+      trueCost: "راستے کی حقیقی لاگت",
+      ofFee: "فیس کا",
+      youGain: "آپ کو فائدہ",
+      moneyInHand: "رقم ہاتھ میں",
+      now: "ابھی",
+      monthsInHand: "{n} مہینے میں",
+      interestType: "سود کی قسم",
+      flat: "فلیٹ",
+      reducing: "گھٹتی",
+      effAPR: "مؤثر شرحِ سود",
+      bestValue: "سب سے کم لاگت",
+      roscaNote: "فرض کیا گیا ہے کہ پوٹ فیس کے برابر ہے، کمیٹی پوری مدت چلتی ہے، اور آپ اپنی باری کے بعد بھی رقم جمع کراتے رہتے ہیں۔",
+      cumulativeCashOutflow: "آپ ہر مہینے کتنا جمع کراتے ہیں",
+      trueCostTitle: "ہر راستے کی حقیقی لاگت",
+      roscaPayout: "آپ پوٹ وصول کرتے ہیں",
+      inputs: "تفصیلات",
+      switchLanguageLabel: "English",
+      rs: "روپے",
       month: "مہینہ",
       months: "مہینے",
-      roscaPayout: "کمیٹی کی ادائیگی",
-      inputs: "معلومات",
-      routes: "فنانسنگ کے طریقے"
+      takeawayCost: "{route} کی حقیقی لاگت سب سے کم ہے",
+      takeawayAhead: "{route} میں آپ کو {amt} کا فائدہ ہے",
+      takeawaySoonest: "{route} کے ذریعے فیس سب سے جلد ہاتھ میں آتی ہے",
+      scrubHint: "کسی بھی مہینے کے لیے گراف پر انگلی رکھ کر کھینچیں",
+      breakEven: "برابر",
+      cashChartSummary: "مہینہ {n} تک: قرض {loan}، بچت {savings}، کمیٹی {rosca}۔",
+      feedbackQ: "کیا اس موازنے سے فیصلہ کرنے میں مدد ملی؟",
+      yes: "ہاں",
+      no: "نہیں",
+      feedbackThanks: "شکریہ۔ نوٹ کر لیا۔"
     };
     const translations = { en, ur };
 
-    function useFinancingCalc({ targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn }) {
-      return useMemo(() => {
-        const P = targetAmount, n = duration;
-        const r_inf = inflation / 100, r_loan = loanInterest / 100, r_save = savingsYield / 100;
-        const r_inf_m = r_inf / 12;
-
-        const mrl = r_loan / 12;
-        const loanMonthly = mrl === 0 ? P / n : P * (mrl * Math.pow(1 + mrl, n)) / (Math.pow(1 + mrl, n) - 1);
-        const loanTotal = loanMonthly * n;
-        let loanPV = 0;
-        for (let m = 1; m <= n; m++) loanPV += loanMonthly / Math.pow(1 + r_inf_m, m);
-        const loanTrue = loanPV;
-        const loanExtra = ((loanTotal - P) / P * 100);
-
-        const mrs = r_save / 12;
-        const saveMonthly = mrs === 0 ? P / n : P / (((Math.pow(1 + mrs, n) - 1) / mrs));
-        const saveTotal = saveMonthly * n;
-        let savePV = 0;
-        for (let m = 1; m <= n; m++) savePV += saveMonthly / Math.pow(1 + r_inf_m, m);
-        const saveTrue = savePV;
-        const saveExtra = ((saveTotal - P) / P * 100);
-
-        const roscaMonthly = P / n;
-        const roscaTotal = roscaMonthly * n;
-        let roscaPV = 0;
-        for (let m = 1; m <= n; m++) roscaPV += roscaMonthly / Math.pow(1 + r_inf_m, m);
-        const roscaTrue = roscaPV;
-        const roscaExtra = ((roscaTotal - P) / P * 100);
-
-        const cashOut = [];
-        for (let m = 1; m <= n; m++) {
-          cashOut.push({ month: m, loan: loanMonthly * m, savings: saveMonthly * m, rosca: roscaMonthly * m });
-        }
-
-        return {
-          loan: { monthly: Math.round(loanMonthly), totalPaid: Math.round(loanTotal), trueCost: Math.round(loanTrue), extra: loanExtra },
-          savings: { monthly: Math.round(saveMonthly), totalPaid: Math.round(saveTotal), trueCost: Math.round(saveTrue), extra: saveExtra },
-          rosca: { monthly: Math.round(roscaMonthly), totalPaid: Math.round(roscaTotal), trueCost: Math.round(roscaTrue), extra: roscaExtra },
-          cashOutflow: cashOut,
-          trueCostData: [
-            { name: 'Amortized Loan', value: Math.round(loanTrue), color: 'var(--loan)', extra: loanExtra },
-            { name: 'Compound Savings', value: Math.round(saveTrue), color: 'var(--savings)', extra: saveExtra },
-            { name: 'Committee (ROSCA)', value: Math.round(roscaTrue), color: 'var(--rosca)', extra: roscaExtra },
-          ]
-        };
-      }, [targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn]);
+    // The financing model lives in model.js (loaded above) — pure, DOM-free, and
+    // unit-tested in test/model.test.mjs. This hook just memoizes it.
+    function useFinancingCalc(params) {
+      const { targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn, loanRateType } = params;
+      return useMemo(
+        () => computeFinancing({ targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn, loanRateType }),
+        [targetAmount, duration, inflation, loanInterest, savingsYield, roscaTurn, loanRateType]
+      );
     }
 
     function e(type, props, ...children) {
       return React.createElement(type, props, ...children);
     }
+
+    function useMediaQuery(query) {
+      const mq = () => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(query) : null);
+      const [matches, setMatches] = useState(() => { const m = mq(); return m ? m.matches : false; });
+      useEffect(() => {
+        const m = mq();
+        if (!m) return;
+        const on = () => setMatches(m.matches);
+        on();
+        m.addEventListener ? m.addEventListener('change', on) : m.addListener(on);
+        return () => (m.removeEventListener ? m.removeEventListener('change', on) : m.removeListener(on));
+      }, [query]);
+      return matches;
+    }
+
+    // 6d: one source of truth for route identity. color/bright/soft are CSS custom
+    // properties (defined once in :root); dash is the SVG stroke pattern so the
+    // three lines stay distinguishable without colour (6c).
+    const ROUTE = {
+      loan:    { key: 'loan',    color: 'var(--loan)',    bright: 'var(--loan-bright)',    soft: 'var(--loan-soft)',    dash: 'none' },
+      savings: { key: 'savings', color: 'var(--savings)', bright: 'var(--savings-bright)', soft: 'var(--savings-soft)', dash: '7 5' },
+      rosca:   { key: 'rosca',   color: 'var(--rosca)',   bright: 'var(--rosca-bright)',   soft: 'var(--rosca-soft)',   dash: '1.5 4' },
+    };
+    const ROUTE_KEYS = ['loan', 'savings', 'rosca'];
 
     // ---- Route glyphs: each financing route gets its own motif instead of a colored dot ----
     function RouteGlyph({ kind, color, size = 18 }) {
@@ -245,9 +329,9 @@
       if (kind === 'savings') {
         // rising stack — compounding growth
         return e('svg', common,
-          e('rect', { x: 4, y: 15, width: 4.5, height: 5, rx: 1, fill: color, opacity: 0.85 }),
-          e('rect', { x: 10, y: 10, width: 4.5, height: 10, rx: 1, fill: color, opacity: 0.85 }),
-          e('rect', { x: 16, y: 4, width: 4.5, height: 16, rx: 1, fill: color, opacity: 0.85 })
+          e('rect', { x: 4, y: 15, width: 4.5, height: 5, fill: color, opacity: 0.85 }),
+          e('rect', { x: 10, y: 10, width: 4.5, height: 10, fill: color, opacity: 0.85 }),
+          e('rect', { x: 16, y: 4, width: 4.5, height: 16, fill: color, opacity: 0.85 })
         );
       }
       // rosca — rotating circle of contributors
@@ -258,288 +342,413 @@
     }
 
     function Slider({ label, value, min, max, step, onChange, color, badge }) {
-      return e('div', { style: { marginBottom: 18 } },
-        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 } },
-          e('span', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.65)', fontWeight: 500, letterSpacing: '0.01em' } }, label),
-          e('span', { style: { color: color, fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-en)', letterSpacing: '0.01em' } }, badge || value)
+      const text = String(badge != null ? badge : value);
+      return e('div', { style: { marginBottom: 14 } },
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 } },
+          e('span', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.7)', fontWeight: 500, letterSpacing: '0.01em' } }, label),
+          e('span', { style: { color: color, fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-en)', letterSpacing: '0.01em' } }, text)
         ),
-        e('input', { type: 'range', min, max, step, value, onChange: (ev) => onChange(Number(ev.target.value)), style: { width: '100%', color: color } })
+        e('input', {
+          type: 'range', min, max, step, value,
+          'aria-label': label, 'aria-valuetext': text,
+          onChange: (ev) => onChange(Number(ev.target.value)),
+          style: { width: '100%', color: color }
+        })
       );
     }
 
     function SectionHeader({ color, title, kind }) {
-      return e('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginTop: 24, marginBottom: 14, paddingTop: 16, borderTop: '1px solid rgba(250,247,240,0.10)' } },
+      return e('div', { style: { display: 'flex', alignItems: 'center', gap: 9, marginTop: 22, marginBottom: 12, paddingTop: 16, borderTop: '1px solid rgba(250,247,240,0.12)' } },
         e(RouteGlyph, { kind, color, size: 16 }),
         e('span', { style: { color: 'var(--paper)', fontSize: 13.5, fontWeight: 700, letterSpacing: '0.01em' } }, title)
       );
     }
 
     function ControlPanel({ t, params, onChange, isRTL }) {
-      const fmt = (v) => `Rs ${v.toLocaleString()}`;
+      const fmt = (v) => `${t.rs} ${grp(v)}`;
+      const moLabel = isRTL ? t.months : 'mo';
       return e('div', {
         className: 'fp-control-panel',
-        style: { background: 'var(--ink)', borderRadius: 'var(--radius-lg)', padding: '26px 22px', color: 'var(--paper)', minWidth: 260, maxWidth: 300, flexShrink: 0 }
+        style: { background: 'var(--ink)', borderRadius: 'var(--radius-lg)', padding: '24px 22px', color: 'var(--paper)', minWidth: 260, maxWidth: 300, flexShrink: 0 }
       },
-        e('div', { style: { fontSize: 11, fontWeight: 700, color: 'rgba(250,247,240,0.45)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 } }, t.inputs),
+        e('div', { style: { fontSize: 11, fontWeight: 700, color: 'rgba(250,247,240,0.5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 } }, t.inputs),
 
-        e('div', { style: { marginBottom: 20 } },
-          e('label', { style: { display: 'block', fontSize: 12.5, color: 'rgba(250,247,240,0.65)', marginBottom: 7, fontWeight: 500 } }, t.targetAmount),
+        e('div', { style: { marginBottom: 18 } },
+          e('label', { htmlFor: 'pn-target', style: { display: 'block', fontSize: 12.5, color: 'rgba(250,247,240,0.7)', marginBottom: 7, fontWeight: 500 } }, t.targetAmount),
           e('input', {
-            type: 'text', inputMode: 'numeric', value: fmt(params.targetAmount),
+            id: 'pn-target', type: 'text', inputMode: 'numeric', value: fmt(params.targetAmount),
             onChange: (ev) => { const val = Number(ev.target.value.replace(/[^0-9]/g, '')); onChange('targetAmount', val || 0); },
             style: {
               width: '100%', padding: '11px 14px', borderRadius: 'var(--radius-sm)',
-              border: '1px solid rgba(250,247,240,0.18)', background: 'rgba(250,247,240,0.06)',
+              border: '1px solid rgba(250,247,240,0.2)', background: 'rgba(250,247,240,0.06)',
               color: 'var(--paper)', fontSize: 16, fontWeight: 600, fontFamily: 'var(--font-en)', outline: 'none'
             }
           })
         ),
-        e(Slider, { label: t.duration, value: params.duration, min: 3, max: 60, step: 1, onChange: (v) => onChange('duration', v), color: '#D9A867', badge: `${params.duration} ${isRTL ? t.months : (params.duration===1?'mo':'mo')}` }),
-        e(Slider, { label: t.inflation, value: params.inflation, min: 0, max: 25, step: 0.1, onChange: (v) => onChange('inflation', v), color: '#D9A867', badge: `${params.inflation}%` }),
+        e(Slider, { label: t.duration, value: params.duration, min: 3, max: 60, step: 1, onChange: (v) => onChange('duration', v), color: 'var(--accent)', badge: `${params.duration} ${moLabel}` }),
+        e(Slider, { label: t.inflation, value: params.inflation, min: 0, max: 25, step: 0.1, onChange: (v) => onChange('inflation', v), color: 'var(--accent)', badge: `${params.inflation}%` }),
 
-        e(SectionHeader, { color: '#8C9EE8', title: t.amortizedLoan, kind: 'loan' }),
-        e(Slider, { label: t.loanInterest, value: params.loanInterest, min: 0, max: 30, step: 0.1, onChange: (v) => onChange('loanInterest', v), color: '#8C9EE8', badge: `${params.loanInterest}%` }),
+        e(SectionHeader, { color: ROUTE.loan.bright, title: t.amortizedLoan, kind: 'loan' }),
+        e(Slider, { label: t.loanInterest, value: params.loanInterest, min: 0, max: 30, step: 0.1, onChange: (v) => onChange('loanInterest', v), color: ROUTE.loan.bright, badge: `${params.loanInterest}%` }),
+        e(SegToggle, {
+          label: t.interestType, color: ROUTE.loan.bright, value: params.loanRateType,
+          options: [{ value: 'reducing', label: t.reducing }, { value: 'flat', label: t.flat }],
+          onChange: (v) => onChange('loanRateType', v),
+        }),
 
-        e(SectionHeader, { color: '#5FC4AE', title: t.compoundSavings, kind: 'savings' }),
-        e(Slider, { label: t.savingsYield, value: params.savingsYield, min: 0, max: 20, step: 0.1, onChange: (v) => onChange('savingsYield', v), color: '#5FC4AE', badge: `${params.savingsYield}%` }),
+        e(SectionHeader, { color: ROUTE.savings.bright, title: t.compoundSavings, kind: 'savings' }),
+        e(Slider, { label: t.savingsYield, value: params.savingsYield, min: 0, max: 20, step: 0.1, onChange: (v) => onChange('savingsYield', v), color: ROUTE.savings.bright, badge: `${params.savingsYield}%` }),
 
-        e(SectionHeader, { color: '#D9A867', title: t.committee, kind: 'rosca' }),
-        e(Slider, { label: t.roscaTurn, value: params.roscaTurn, min: 1, max: params.duration, step: 1, onChange: (v) => onChange('roscaTurn', v), color: '#D9A867', badge: `${params.roscaTurn}` })
+        e(SectionHeader, { color: ROUTE.rosca.bright, title: t.committee, kind: 'rosca' }),
+        // Badge shows the clamped turn (state can hold a stale value above duration; 2g-i).
+        e(Slider, { label: t.roscaTurn, value: Math.min(params.roscaTurn, params.duration), min: 1, max: params.duration, step: 1, onChange: (v) => onChange('roscaTurn', v), color: ROUTE.rosca.bright, badge: `${Math.min(params.roscaTurn, params.duration)}` })
       );
     }
 
-    function ResultCard({ title, monthly, totalPaid, trueCost, extra, color, softColor, kind, isBest, t, isRTL }) {
-      const sign = extra >= 0 ? '+' : '';
-      const extraAbs = Math.abs(extra).toFixed(1);
-      const moreLess = extra >= 0 ? t.more : t.less;
+    function SegToggle({ label, value, options, onChange, color }) {
+      return e('div', { style: { marginBottom: 18 } },
+        e('div', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.65)', fontWeight: 500, marginBottom: 8, letterSpacing: '0.01em' } }, label),
+        e('div', { style: { display: 'flex', gap: 6 } },
+          options.map(o => {
+            const on = o.value === value;
+            return e('button', {
+              key: o.value, type: 'button', onClick: () => onChange(o.value),
+              'aria-pressed': on,
+              style: {
+                flex: 1, padding: '7px 4px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                border: `1px solid ${on ? color : 'rgba(250,247,240,0.2)'}`,
+                background: on ? color : 'transparent',
+                color: on ? 'var(--ink)' : 'rgba(250,247,240,0.7)',
+              },
+            }, o.label);
+          })
+        )
+      );
+    }
+
+    // 2g-ii: single rounding point for every money figure the user sees.
+    function rupees(v) { return Math.round(v); }
+    // 5d: Western digits (123, not ۱۲۳) in both languages — how prices, bank
+    // statements, SMS-banking and wallets are written in Pakistan. Locale pinned
+    // to 'en-US' so grouping never depends on the device. (Switch to 'en-IN' for
+    // lakh/crore grouping if desired — the font subset already covers both.)
+    function grp(v) { return Math.round(v).toLocaleString('en-US'); }
+    // t.rs + grouped amount, with a leading minus kept outside the currency word.
+    function money(v, t) { const r = rupees(v); return `${r < 0 ? '−' : ''}${t.rs} ${grp(Math.abs(r))}`; }
+    function inHandLabel(months, t) {
+      return months <= 0 ? t.now : t.monthsInHand.replace('{n}', String(months));
+    }
+
+    function ResultCard({ title, data, color, softColor, kind, isBest, note, t, isRTL }) {
+      const cost = rupees(data.realCost);           // compare/display the rounded figure (avoids -0)
+      const isGain = cost < 0;                       // negative real cost = you come out ahead
+      const pct = Math.abs(data.pctOfFee).toFixed(1);
+      const qualifier = isGain ? `${t.youGain} ${pct}% ${t.ofFee}` : `${pct}% ${t.ofFee}`;
 
       return e('div', {
         style: {
           background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '20px 18px',
           border: `1px solid ${isBest ? color : 'var(--rule)'}`,
-          borderTop: `3px solid ${color}`,
+          borderTop: isBest ? `3px solid ${color}` : '1px solid var(--rule)',
           boxShadow: isBest ? 'var(--shadow-raised)' : 'var(--shadow-card)',
           position: 'relative', flex: 1, minWidth: 190
         }
       },
         e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 } },
           e('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
-            e('div', { style: { width: 26, height: 26, borderRadius: '50%', background: softColor, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+            e('div', { style: { width: 26, height: 26, borderRadius: 0, background: softColor, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
               e(RouteGlyph, { kind, color, size: 15 })
             ),
             e('h3', { style: { fontSize: 13.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '0.01em' } }, title)
           ),
-          isBest ? e('span', { style: { fontSize: 9.5, fontWeight: 700, color: color, background: softColor, padding: '3px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-en)' } }, t.bestValue) : null
+          isBest ? e('span', { style: { fontSize: 9.5, fontWeight: 700, color: color, background: softColor, padding: '3px 8px', borderRadius: 0, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-en)' } }, t.bestValue) : null
         ),
         e('p', { style: { fontSize: 11, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.monthlyPayment),
-        e('p', { style: { fontSize: 26, fontWeight: 700, color: 'var(--ink)', marginBottom: 16, fontFamily: 'var(--font-en)', lineHeight: 1.1, letterSpacing: '-0.01em' } }, `${t.rs} ${monthly.toLocaleString()}`),
+        e('p', { style: { fontSize: 26, fontWeight: 700, color: 'var(--ink)', marginBottom: 4, fontFamily: 'var(--font-en)', lineHeight: 1.1, letterSpacing: '-0.01em' } }, money(data.monthly, t)),
+        e('p', { style: { fontSize: 10.5, color: 'var(--ink-soft)', marginBottom: 14, fontWeight: 500 } },
+          `${t.moneyInHand}: ${inHandLabel(data.inHand, t)}`),
+        data.rateType === 'flat'
+          ? e('p', { style: { fontSize: 10.5, color: 'var(--bad)', marginBottom: 12, fontWeight: 600, fontFamily: 'var(--font-en)' } },
+              `${t.effAPR}: ${data.effAprPct.toFixed(1)}%`)
+          : null,
         e('div', { style: { borderTop: '1px solid var(--rule)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', gap: 8 } },
           e('div', {},
             e('p', { style: { fontSize: 10.5, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.totalPaid),
-            e('p', { style: { fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-en)' } }, `${t.rs} ${totalPaid.toLocaleString()}`)
+            e('p', { style: { fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-en)' } }, money(data.totalPaid, t))
           ),
           e('div', { style: { textAlign: isRTL ? 'left' : 'right' } },
             e('p', { style: { fontSize: 10.5, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.trueCost),
-            e('p', { style: { fontSize: 13, fontWeight: 700, color: color, fontFamily: 'var(--font-en)' } }, `${t.rs} ${trueCost.toLocaleString()}`),
+            e('p', { style: { fontSize: 13, fontWeight: 700, color: isGain ? 'var(--good)' : color, fontFamily: 'var(--font-en)' } },
+              money(cost, t)),
             e('span', {
               style: {
-                fontSize: 10, color: extra >= 0 ? 'var(--bad)' : 'var(--good)', marginTop: 3, fontWeight: 600,
-                fontFamily: 'var(--font-en)', background: extra >= 0 ? 'rgba(176,68,46,0.08)' : 'rgba(42,122,79,0.08)',
-                padding: '2px 6px', borderRadius: 10, display: 'inline-block'
+                fontSize: 10, color: isGain ? 'var(--good)' : 'var(--ink-soft)', marginTop: 3, fontWeight: 600,
+                fontFamily: 'var(--font-en)', background: isGain ? 'rgba(42,122,79,0.08)' : 'var(--paper)',
+                padding: '2px 6px', borderRadius: 0, display: 'inline-block'
               }
-            }, `${sign}${extraAbs}% ${moreLess}`)
+            }, qualifier)
           )
-        )
+        ),
+        note ? e('p', { style: { fontSize: 9.5, color: 'var(--ink-faint)', marginTop: 10, lineHeight: 1.45, fontWeight: 500 } }, note) : null
       );
     }
 
     function ResultCards({ results, t, isRTL }) {
       const { loan, savings, rosca } = results;
-      const costs = [
-        {k:'loan',v:loan.trueCost,extra:loan.extra},
-        {k:'savings',v:savings.trueCost,extra:savings.extra},
-        {k:'rosca',v:rosca.trueCost,extra:rosca.extra}
-      ];
-      const bestKey = costs.reduce((a,b)=>{
-        if (a.v !== b.v) return a.v < b.v ? a : b;
-        return a.extra < b.extra ? a : b;
-      }).k;
-      const cards = [
-        {key:'loan', title:t.amortizedLoan, data:loan, color:'var(--loan)', soft:'var(--loan-soft)', kind:'loan'},
-        {key:'savings', title:t.compoundSavings, data:savings, color:'var(--savings)', soft:'var(--savings-soft)', kind:'savings'},
-        {key:'rosca', title:t.committee, data:rosca, color:'var(--rosca)', soft:'var(--rosca-soft)', kind:'rosca'},
-      ];
-      return e('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 } },
-        cards.map(c => e(ResultCard, { key: c.key, title: c.title, monthly: c.data.monthly, totalPaid: c.data.totalPaid, trueCost: c.data.trueCost, extra: c.data.extra, color: c.color, softColor: c.soft, kind: c.kind, isBest: bestKey===c.key, t, isRTL }))
+      // 2c: best = lowest real cost of the route.
+      const bestKey = [['loan', loan], ['savings', savings], ['rosca', rosca]]
+        .reduce((a, b) => (b[1].realCost < a[1].realCost ? b : a))[0];
+      const titles = { loan: t.amortizedLoan, savings: t.compoundSavings, rosca: t.committee };
+      return e('div', { className: 'fp-cards', style: { display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 } },
+        ROUTE_KEYS.map(k => e(ResultCard, {
+          key: k, title: titles[k], data: results[k],
+          color: ROUTE[k].color, softColor: ROUTE[k].soft, kind: k,
+          isBest: bestKey === k, note: k === 'rosca' ? t.roscaNote : null, t, isRTL,
+        }))
       );
     }
 
-    const COLOR_MAP = { 'var(--loan)': '#3B4C8C', 'var(--savings)': '#1F7A6C', 'var(--rosca)': '#B8792E' };
-    function resolveColor(c) { return COLOR_MAP[c] || c; }
+    const SR_ONLY = { position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 };
 
-    function CashOutflowChart({ data, t, duration, roscaTurn, isRTL }) {
-      const svgRef = useRef(null);
-      const width = 480, height = 260;
-      const padding = { top: 30, right: isRTL ? 80 : 30, bottom: 50, left: isRTL ? 30 : 80 };
-      const chartW = width - padding.left - padding.right;
-      const chartH = height - padding.top - padding.bottom;
-      const maxVal = Math.max(...data.map(d => Math.max(d.loan, d.savings, d.rosca)));
-      const yMax = Math.ceil(maxVal / 100000) * 100000 || 100000;
-
-      const xScale = (i) => isRTL ? (width - padding.right) - (i / (data.length - 1)) * chartW : padding.left + (i / (data.length - 1)) * chartW;
-      const yScale = (v) => padding.top + chartH - (v / yMax) * chartH;
-
-      const pathFor = (key) => {
-        let d = `M ${xScale(0)} ${yScale(data[0][key])}`;
-        for (let i = 1; i < data.length; i++) d += ` L ${xScale(i)} ${yScale(data[i][key])}`;
-        return d;
+    // 5c + 6b: one place that decides chart geometry. Wide gutter goes on the side
+    // the y-labels live (mirrored in RTL); font sizes and tick counts step up when
+    // the chart is narrow so a ~340px column doesn't render 7px text.
+    function chartGeom(isRTL, narrow, width, top, bottom) {
+      const gutter = narrow ? 62 : 74, edge = 16;
+      const padding = { top, bottom, left: isRTL ? edge : gutter, right: isRTL ? gutter : edge };
+      return {
+        padding,
+        yLabelX: isRTL ? width - padding.right + 6 : padding.left - 6,
+        yLabelAnchor: isRTL ? 'start' : 'end',
+        axisFont: narrow ? 15 : 11,
+        labelFont: narrow ? 15 : 12,
       };
+    }
 
-      const yTicks = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
-      const fmtLabel = (v) => v >= 100000 ? `Rs${(v/100000).toFixed(0)}L` : v >= 1000 ? `Rs${(v/1000).toFixed(0)}k` : `Rs${v}`;
-      const payoutIndex = Math.min(roscaTurn - 1, data.length - 1);
-      const payoutX = xScale(payoutIndex);
-
+    // 6a: pointer events (mouse + touch + pen) with page-scroll suppressed while
+    // scrubbing, and the tooltip lifted clear of the finger on touch.
+    function useScrubTooltip(svgRef, deps, resolveIndex, renderHTML) {
       useEffect(() => {
         const svg = svgRef.current;
         if (!svg) return;
-        const tooltip = document.getElementById('chart-tooltip');
-        const handleMove = (ev) => {
+        const tip = document.getElementById('chart-tooltip');
+        const show = (ev) => {
           const rect = svg.getBoundingClientRect();
-          const svgMouseX = ((ev.clientX - rect.left) / rect.width) * width;
-          let closest = 0, minDist = Infinity;
-          for (let i = 0; i < data.length; i++) {
-            const dist = Math.abs(xScale(i) - svgMouseX);
-            if (dist < minDist) { minDist = dist; closest = i; }
-          }
-          if (minDist < 40) {
-            const d = data[closest];
-            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${t.month} ${d.month}</div><div style="color:#8C9EE8;margin-bottom:2px;">${t.amortizedLoan}: ${t.rs} ${Math.round(d.loan).toLocaleString()}</div><div style="color:#5FC4AE;margin-bottom:2px;">${t.compoundSavings}: ${t.rs} ${Math.round(d.savings).toLocaleString()}</div><div style="color:#D9A867;">${t.committee}: ${t.rs} ${Math.round(d.rosca).toLocaleString()}</div>`;
-            const tr = tooltip.getBoundingClientRect();
-            let left = ev.clientX + 15, top = ev.clientY - 10;
-            if (left + tr.width > window.innerWidth - 10) left = ev.clientX - tr.width - 15;
-            if (top + tr.height > window.innerHeight - 10) top = ev.clientY - tr.height - 10;
-            if (top < 10) top = 10;
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-            tooltip.classList.add('visible');
-          } else {
-            tooltip.classList.remove('visible');
-          }
+          const i = resolveIndex((ev.clientX - rect.left) / rect.width);
+          if (i == null) { tip.classList.remove('visible'); return; }
+          tip.innerHTML = renderHTML(i);
+          const tr = tip.getBoundingClientRect();
+          const touch = ev.pointerType === 'touch';
+          let left = ev.clientX + (touch ? -tr.width / 2 : 15);
+          let top = ev.clientY - (touch ? tr.height + 24 : 10);
+          left = Math.max(8, Math.min(left, window.innerWidth - tr.width - 8));
+          if (top < 8) top = ev.clientY + 24;
+          tip.style.left = left + 'px';
+          tip.style.top = top + 'px';
+          tip.classList.add('visible');
         };
-        const handleLeave = () => tooltip.classList.remove('visible');
-        svg.addEventListener('mousemove', handleMove);
-        svg.addEventListener('mouseleave', handleLeave);
-        return () => { svg.removeEventListener('mousemove', handleMove); svg.removeEventListener('mouseleave', handleLeave); };
-      }, [data, isRTL, t]);
+        const hide = () => tip.classList.remove('visible');
+        const onDown = (ev) => { svg.setPointerCapture?.(ev.pointerId); show(ev); };
+        svg.addEventListener('pointerdown', onDown);
+        svg.addEventListener('pointermove', show);
+        svg.addEventListener('pointerup', hide);
+        svg.addEventListener('pointerleave', hide);
+        svg.addEventListener('pointercancel', hide);
+        return () => {
+          svg.removeEventListener('pointerdown', onDown);
+          svg.removeEventListener('pointermove', show);
+          svg.removeEventListener('pointerup', hide);
+          svg.removeEventListener('pointerleave', hide);
+          svg.removeEventListener('pointercancel', hide);
+        };
+      }, deps); // eslint-disable-line
+    }
 
-      const xTicks = isRTL ? [duration-1, Math.floor(duration*0.75), Math.floor(duration/2), Math.floor(duration/4), 0] : [0, Math.floor(duration/4), Math.floor(duration/2), Math.floor(duration*0.75), duration-1];
-
-      return e('div', { style: { background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '20px', border: '1px solid var(--rule)', boxShadow: 'var(--shadow-card)', flex: 1, minWidth: 280 } },
-        e('h3', { style: { fontSize: 14, fontWeight: 700, marginBottom: 18, color: 'var(--ink)', letterSpacing: '0.01em' } }, t.cumulativeCashOutflow),
-        e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, style: { width: '100%', height: 'auto', maxHeight: 260, cursor: 'crosshair' } },
-          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: 'var(--rule)', strokeDasharray: '3 4', strokeWidth: 1 })),
-          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, fmtLabel(tick))),
-          xTicks.map((i) => e('text', { key: `xl${i}`, x: xScale(i), y: height - 15, textAnchor: 'middle', fontSize: 10, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, `${t.month} ${data[i]?.month || i+1}`)),
-          e('path', { d: pathFor('loan'), fill: 'none', stroke: '#3B4C8C', strokeWidth: 2.25 }),
-          e('path', { d: pathFor('savings'), fill: 'none', stroke: '#1F7A6C', strokeWidth: 2.25 }),
-          e('path', { d: pathFor('rosca'), fill: 'none', stroke: '#B8792E', strokeWidth: 2.25 }),
-          data.length > 0 && roscaTurn > 0 && roscaTurn <= duration ? e('g', {},
-            e('line', { x1: payoutX, y1: padding.top, x2: payoutX, y2: height - padding.bottom, stroke: '#B8792E', strokeDasharray: '5 4', strokeWidth: 1.25, opacity: 0.55 }),
-            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: 10, fill: '#B8792E', fontWeight: 600, fontFamily: 'var(--font-en)' }, t.roscaPayout)
-          ) : null
+    function ChartCard({ title, takeaway, summary, children }) {
+      return e('figure', { style: { background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '18px', border: '1px solid var(--rule)', boxShadow: 'var(--shadow-card)', flex: 1, minWidth: 280, margin: 0 } },
+        e('figcaption', { style: { marginBottom: 4 } },
+          e('h3', { style: { fontSize: 14, fontWeight: 700, color: 'var(--ink)', letterSpacing: '0.01em' } }, title),
+          takeaway ? e('p', { style: { fontSize: 12, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.45 } }, takeaway) : null
         ),
-        e('div', { style: { display: 'flex', justifyContent: 'center', gap: 20, marginTop: 12, flexWrap: 'wrap' } },
-          [{c:'#3B4C8C',l:t.amortizedLoan,k:'loan'},{c:'#1F7A6C',l:t.compoundSavings,k:'savings'},{c:'#B8792E',l:t.committee,k:'rosca'}].map(item =>
-            e('div', { key: item.l, style: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--ink-soft)' } },
-              e(RouteGlyph, { kind: item.k, color: item.c, size: 13 }),
-              e('span', null, item.l)
-            )
-          )
+        summary ? e('p', { style: SR_ONLY }, summary) : null,
+        children
+      );
+    }
+
+    function Legend({ t }) {
+      const names = { loan: t.amortizedLoan, savings: t.compoundSavings, rosca: t.committee };
+      return e('div', { style: { display: 'flex', justifyContent: 'center', gap: 16, marginTop: 10, flexWrap: 'wrap' } },
+        ROUTE_KEYS.map(k => e('span', { key: k, style: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: 'var(--ink-soft)' } },
+          e(RouteGlyph, { kind: k, color: ROUTE[k].color, size: 14 }),
+          names[k]
+        ))
+      );
+    }
+
+    function CashOutflowChart({ data, t, duration, roscaTurn, isRTL, narrow }) {
+      const svgRef = useRef(null);
+      const width = 480, height = 264;
+      const g = chartGeom(isRTL, narrow, width, 26, 42);
+      const { padding } = g;
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+      const last = data.length - 1;
+      const maxVal = Math.max(...data.map(d => Math.max(d.loan, d.savings, d.rosca)), 1);
+      const yMax = Math.ceil(maxVal / 100000) * 100000 || 100000;
+
+      const xScale = (i) => isRTL ? (width - padding.right) - (i / last) * chartW : padding.left + (i / last) * chartW;
+      const yScale = (v) => padding.top + chartH - (v / yMax) * chartH;
+      const pathFor = (key) => data.map((d, i) => `${i ? 'L' : 'M'} ${xScale(i)} ${yScale(d[key])}`).join(' ');
+
+      const yTicks = [0, yMax * 0.5, yMax];
+      const nTicks = narrow ? 3 : 5;
+      const xTickIdx = [...new Set(Array.from({ length: nTicks }, (_, j) => Math.round((j / (nTicks - 1)) * last)))];
+      const fmtY = (v) => v >= 100000 ? `${t.rs} ${(v / 100000).toFixed(1)}L` : v >= 1000 ? `${t.rs} ${(v / 1000).toFixed(0)}k` : `${t.rs} ${v}`;
+      const payoutIdx = Math.min(Math.max(roscaTurn - 1, 0), last);
+      const payoutX = xScale(payoutIdx);
+
+      useScrubTooltip(svgRef, [data, isRTL, t, narrow], (frac) => {
+        let best = 0, bd = Infinity;
+        for (let i = 0; i <= last; i++) { const d = Math.abs(((xScale(i) - padding.left) / chartW) - (isRTL ? 1 - frac : frac)); if (d < bd) { bd = d; best = i; } }
+        return best;
+      }, (i) => {
+        const d = data[i];
+        const row = (k, label) => `<div style="display:flex;gap:8px;justify-content:space-between;color:${ROUTE[k].color};margin-top:3px"><span>${label}</span><b>${money(d[k], t)}</b></div>`;
+        return `<div style="font-weight:700;font-size:13px">${t.month} ${d.month}</div>${row('loan', t.amortizedLoan)}${row('savings', t.compoundSavings)}${row('rosca', t.committee)}`;
+      });
+
+      return e(ChartCard, {
+        title: t.cumulativeCashOutflow,
+        takeaway: t.takeawaySoonest.replace('{route}', t.amortizedLoan) + `. ${t.committee}: ${inHandLabel(roscaTurn, t)}, ${t.compoundSavings}: ${inHandLabel(duration, t)}.`,
+        summary: t.cashChartSummary.replace('{n}', data[last].month).replace('{loan}', money(data[last].loan, t)).replace('{savings}', money(data[last].savings, t)).replace('{rosca}', money(data[last].rosca, t)),
+      },
+        e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': t.cumulativeCashOutflow, style: { width: '100%', height: 'auto', display: 'block', touchAction: 'none', cursor: 'crosshair' } },
+          yTicks.map((tk, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tk), x2: width - padding.right, y2: yScale(tk), stroke: 'var(--rule)', strokeWidth: 1 })),
+          yTicks.map((tk, i) => e('text', { key: `y${i}`, x: g.yLabelX, y: yScale(tk) + 4, textAnchor: g.yLabelAnchor, fontSize: g.axisFont, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, fmtY(tk))),
+          xTickIdx.map((i) => e('text', { key: `x${i}`, x: xScale(i), y: height - 12, textAnchor: 'middle', fontSize: g.axisFont, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, data[i] ? data[i].month : i + 1)),
+          roscaTurn > 0 && roscaTurn <= duration ? e('g', null,
+            e('line', { x1: payoutX, y1: padding.top - 4, x2: payoutX, y2: height - padding.bottom, stroke: 'var(--rosca)', strokeWidth: 1.5, strokeDasharray: '5 4' }),
+            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: narrow ? 13 : 10.5, fill: 'var(--rosca)', fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.roscaPayout}, ${t.month} ${roscaTurn}`)
+          ) : null,
+          ROUTE_KEYS.map(k => e('path', { key: k, d: pathFor(k), fill: 'none', stroke: ROUTE[k].color, strokeWidth: 2.5, strokeDasharray: ROUTE[k].dash, strokeLinecap: 'round', strokeLinejoin: 'round' })),
+          ROUTE_KEYS.map(k => e('circle', { key: `${k}m`, cx: xScale(last), cy: yScale(data[last][k]), r: 3.5, fill: ROUTE[k].color })),
+        ),
+        e(Legend, { t })
+      );
+    }
+
+    function TrueCostChart({ data, t, isRTL, narrow }) {
+      const svgRef = useRef(null);
+      const width = 480, height = 200;
+      const g = chartGeom(isRTL, narrow, width, 34, 26);
+      const { padding } = g;
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+      const names = { loan: t.amortizedLoan, savings: t.compoundSavings, rosca: t.committee };
+      const rows = data.map(d => ({ ...d, name: names[d.key], v: Math.round(d.value), gain: Math.round(d.value) < 0 }));
+
+      const step = 20000;
+      const hi = Math.max(step, Math.ceil(Math.max(0, ...rows.map(r => r.v)) / step) * step);
+      const lo = Math.min(0, Math.floor(Math.min(0, ...rows.map(r => r.v)) / step) * step);
+      const yScale = (v) => padding.top + chartH - ((v - lo) / (hi - lo)) * chartH;
+
+      const n = rows.length;
+      const barW = Math.min(chartW / (n * 2.2), 54);
+      const gap = (chartW - barW * n) / (n + 1);
+      const barCx = (i) => padding.left + gap + i * (barW + gap) + barW / 2;
+
+      const yTicks = [lo, 0, hi].filter((v, i, a) => a.indexOf(v) === i);
+      const fmtY = (v) => { const a = Math.abs(v); const s = v < 0 ? '−' : ''; return a >= 100000 ? `${s}${(a / 100000).toFixed(1)}L` : a >= 1000 ? `${s}${(a / 1000).toFixed(0)}k` : `${s}${a}`; };
+
+      useScrubTooltip(svgRef, [data, isRTL, t, narrow], (frac) => {
+        const x = frac * width;
+        for (let i = 0; i < n; i++) if (Math.abs(barCx(i) - x) < barW / 2 + 14) return i;
+        return null;
+      }, (i) => {
+        const r = rows[i];
+        return `<div style="font-weight:700;font-size:13px">${r.name}</div><div style="color:${r.gain ? 'var(--good)' : ROUTE[r.key].color};margin-top:3px">${t.trueCost}: <b>${money(r.v, t)}</b></div><div style="opacity:.75;margin-top:2px">${t.moneyInHand}: ${inHandLabel(data[i].inHand ?? 0, t)}</div>`;
+      });
+
+      const best = rows.reduce((a, b) => (b.v < a.v ? b : a));
+      const takeaway = best.gain
+        ? t.takeawayAhead.replace('{route}', best.name).replace('{amt}', money(-best.v, t))
+        : t.takeawayCost.replace('{route}', best.name);
+
+      return e(ChartCard, {
+        title: t.trueCostTitle,
+        takeaway,
+        summary: rows.map(r => `${r.name}: ${money(r.v, t)}, ${t.moneyInHand} ${inHandLabel(data[rows.indexOf(r)].inHand ?? 0, t)}`).join('. ') + '.',
+      },
+        e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': t.trueCostTitle, style: { width: '100%', height: 'auto', display: 'block', touchAction: 'none' } },
+          yTicks.map((tk, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tk), x2: width - padding.right, y2: yScale(tk), stroke: tk === 0 ? 'var(--rule-strong)' : 'var(--rule)', strokeWidth: tk === 0 ? 1.5 : 1 })),
+          yTicks.map((tk, i) => e('text', { key: `y${i}`, x: g.yLabelX, y: yScale(tk) + 4, textAnchor: g.yLabelAnchor, fontSize: g.axisFont, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, tk === 0 ? t.breakEven : `${tk < 0 ? '−' : ''}${t.rs} ${fmtY(Math.abs(tk))}`)),
+          rows.map((r, i) => {
+            const cx = barCx(i), y0 = yScale(0), yv = yScale(r.v);
+            const barY = Math.min(y0, yv), barH = Math.max(Math.abs(yv - y0), 2);
+            return e('g', { key: r.key },
+              e('rect', { x: cx - barW / 2, y: barY, width: barW, height: barH, fill: r.gain ? 'var(--good)' : ROUTE[r.key].color }),
+              e('text', { x: cx, y: r.gain ? yv + g.labelFont + 5 : yv - 7, textAnchor: 'middle', fontSize: g.labelFont, fill: 'var(--ink)', fontWeight: 700, fontFamily: 'var(--font-en)' }, money(r.v, t))
+            );
+          })
+        ),
+        // Route name / glyph / timing as real DOM below the SVG — legible at any width (6b).
+        e('div', { style: { display: 'grid', gridTemplateColumns: `repeat(${n}, 1fr)`, gap: 8, marginTop: 10 } },
+          rows.map((r, i) => e('div', { key: r.key, style: { textAlign: 'center' } },
+            e('div', { style: { display: 'flex', justifyContent: 'center', marginBottom: 3 } }, e(RouteGlyph, { kind: r.key, color: ROUTE[r.key].color, size: 15 })),
+            e('div', { style: { fontSize: 12, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.3 } }, r.name),
+            e('div', { style: { fontSize: 11, color: 'var(--ink-soft)', marginTop: 2 } }, `${t.moneyInHand}: ${inHandLabel(data[i].inHand ?? 0, t)}`)
+          ))
         )
       );
     }
 
-    function TrueCostChart({ data, t, isRTL }) {
-      const svgRef = useRef(null);
-      const width = 480, height = 300;
-      const padding = { top: 50, right: isRTL ? 80 : 30, bottom: 70, left: isRTL ? 30 : 80 };
-      const chartW = width - padding.left - padding.right;
-      const chartH = height - padding.top - padding.bottom;
+    // 6e: feedback is a binary choice (clean yes/no percentage). It writes to a
+    // localStorage queue and tries to POST to /api/feedback; on failure it stays
+    // queued and retries on the next load. No endpoint yet => it just queues.
+    const FEEDBACK_KEY = 'pn_feedback_queue';
+    const FEEDBACK_URL = '/api/feedback';
+    function readQueue() {
+      try { return JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]'); } catch (_) { return []; }
+    }
+    function writeQueue(q) {
+      try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(q)); } catch (_) {}
+    }
+    async function flushFeedback() {
+      const q = readQueue();
+      if (!q.length || typeof fetch !== 'function') return;
+      try {
+        const res = await fetch(FEEDBACK_URL, {
+          method: 'POST', keepalive: true,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(q),
+        });
+        if (res.ok) writeQueue([]);
+      } catch (_) { /* offline / no endpoint — keep the queue for next time */ }
+    }
+    function recordFeedback(choice, params, lang) {
+      const q = readQueue();
+      q.push({ v: 1, choice, lang, ts: Date.now(), params });
+      writeQueue(q);
+      flushFeedback();
+    }
 
-      const nameMap = {
-        'Amortized Loan': t.amortizedLoan,
-        'Compound Savings': t.compoundSavings,
-        'Committee (ROSCA)': t.committee
+    function FeedbackPrompt({ t, params, lang }) {
+      const [done, setDone] = useState(false);
+      if (done) {
+        return e('p', { role: 'status', style: { fontSize: 12.5, color: 'var(--ink-soft)', textAlign: 'center', padding: '14px 0' } }, t.feedbackThanks);
+      }
+      const btn = {
+        padding: '8px 20px', minHeight: 40, borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+        fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+        border: '1px solid var(--rule-strong)', background: 'var(--paper-raised)', color: 'var(--ink)',
       };
-
-      const maxVal = Math.max(...data.map(d => d.value));
-      const yMax = Math.ceil(maxVal / 50000) * 50000 || 50000;
-
-      const n = data.length;
-      const barW = Math.min(chartW / (n * 2.5), 50);
-      const totalBarsWidth = barW * n;
-      const gap = (chartW - totalBarsWidth) / (n + 1);
-
-      const yScale = (v) => padding.top + chartH - (v / yMax) * chartH;
-
-      const fmtLabel = (v) => v >= 100000 ? `${(v/100000).toFixed(1)}L` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
-
-      const yTicks = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
-
-      useEffect(() => {
-        const svg = svgRef.current;
-        if (!svg) return;
-        const tooltip = document.getElementById('chart-tooltip');
-        const handleMove = (ev) => {
-          const rect = svg.getBoundingClientRect();
-          const svgMouseX = ((ev.clientX - rect.left) / rect.width) * width;
-          let closest = 0, minDist = Infinity;
-          for (let i = 0; i < data.length; i++) {
-            const barX = padding.left + gap + i * (barW + gap) + barW / 2;
-            const dist = Math.abs(barX - svgMouseX);
-            if (dist < minDist) { minDist = dist; closest = i; }
-          }
-          if (minDist < barW / 2 + 10) {
-            const d = data[closest];
-            const c = resolveColor(d.color);
-            tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:6px;font-size:13px;">${nameMap[d.name] || d.name}</div><div style="color:${c};margin-bottom:2px;">${t.trueCost}: ${t.rs} ${d.value.toLocaleString()}</div><div style="color:${d.extra >= 0 ? '#E8897A' : '#7FCB9E'};">${d.extra >= 0 ? '+' : ''}${Math.abs(d.extra).toFixed(1)}% ${d.extra >= 0 ? t.more : t.less}</div>`;
-            const tr = tooltip.getBoundingClientRect();
-            let left = ev.clientX + 15, top = ev.clientY - 10;
-            if (left + tr.width > window.innerWidth - 10) left = ev.clientX - tr.width - 15;
-            if (top + tr.height > window.innerHeight - 10) top = ev.clientY - tr.height - 10;
-            if (top < 10) top = 10;
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-            tooltip.classList.add('visible');
-          } else {
-            tooltip.classList.remove('visible');
-          }
-        };
-        const handleLeave = () => tooltip.classList.remove('visible');
-        svg.addEventListener('mousemove', handleMove);
-        svg.addEventListener('mouseleave', handleLeave);
-        return () => { svg.removeEventListener('mousemove', handleMove); svg.removeEventListener('mouseleave', handleLeave); };
-      }, [data, isRTL, t]);
-
-      return e('div', { style: { background: 'var(--paper-raised)', borderRadius: 'var(--radius-lg)', padding: '20px', border: '1px solid var(--rule)', boxShadow: 'var(--shadow-card)', flex: 1, minWidth: 280 } },
-        e('h3', { style: { fontSize: 14, fontWeight: 700, marginBottom: 18, color: 'var(--ink)', letterSpacing: '0.01em' } }, t.trueCostTitle),
-        e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, style: { width: '100%', height: 'auto', maxHeight: 300, cursor: 'crosshair' } },
-          yTicks.map((tick, i) => e('line', { key: `g${i}`, x1: padding.left, y1: yScale(tick), x2: width - padding.right, y2: yScale(tick), stroke: 'var(--rule)', strokeDasharray: '3 4', strokeWidth: 1 })),
-          yTicks.map((tick, i) => e('text', { key: `yl${i}`, x: isRTL ? width - padding.right + 8 : padding.left - 8, y: yScale(tick) + 4, textAnchor: isRTL ? 'start' : 'end', fontSize: 10, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, `${t.rs} ${fmtLabel(tick)}`)),
-          data.map((d, i) => {
-            const barX = padding.left + gap + i * (barW + gap);
-            const c = resolveColor(d.color);
-            const barY = yScale(d.value);
-            const barHeight = yScale(0) - barY;
-            const labelY = barY - 12;
-            const nameY = height - padding.bottom + 20;
-            return e('g', { key: d.name },
-              e('rect', { x: barX, y: barY, width: barW, height: barHeight, fill: c, rx: 3 }),
-              e('text', { x: barX + barW / 2, y: labelY, textAnchor: 'middle', fontSize: 11, fill: c, fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.rs} ${d.value.toLocaleString()}`),
-              e('text', { x: barX + barW / 2, y: nameY, textAnchor: 'middle', fontSize: 10, fill: 'var(--ink-soft)', fontWeight: 600 }, nameMap[d.name] || d.name)
-            );
-          })
+      const pick = (choice) => { recordFeedback(choice, params, lang); setDone(true); };
+      return e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap', padding: '14px 0' } },
+        e('span', { style: { fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 500 } }, t.feedbackQ),
+        e('div', { style: { display: 'flex', gap: 8 } },
+          e('button', { type: 'button', onClick: () => pick('yes'), style: btn }, t.yes),
+          e('button', { type: 'button', onClick: () => pick('no'), style: btn }, t.no)
         )
       );
     }
@@ -548,6 +757,7 @@
       const [lang, setLang] = useState('en');
       const t = translations[lang];
       const isRTL = lang === 'ur';
+      const narrow = useMediaQuery('(max-width: 560px)');
 
       const [params, setParams] = useState({
         targetAmount: 500000,
@@ -555,7 +765,8 @@
         inflation: 8,
         loanInterest: 12,
         savingsYield: 6,
-        roscaTurn: 12
+        roscaTurn: 12,
+        loanRateType: 'reducing'
       });
 
       const handleChange = useCallback((key, value) => {
@@ -564,55 +775,68 @@
 
       const results = useFinancingCalc(params);
 
+      // 5c: put lang + dir on <html> (was only a body class). direction cascades
+      // from the root; the body class stays as the hook for the Urdu font swap.
       useEffect(() => {
+        const root = document.documentElement;
+        root.lang = lang;
+        root.dir = isRTL ? 'rtl' : 'ltr';
         document.body.classList.toggle('rtl', isRTL);
-      }, [isRTL]);
+        document.title = t.title;
+      }, [lang, isRTL, t]);
+
+      // 6e: retry any feedback queued from an earlier visit.
+      useEffect(() => { flushFeedback(); }, []);
 
       const toggleLang = () => setLang(prev => prev === 'en' ? 'ur' : 'en');
 
-      return e('div', { style: { minHeight: '100vh', display: 'flex', flexDirection: 'column' } },
-        e('div', {
+      return e('div', { style: { minHeight: '100dvh', display: 'flex', flexDirection: 'column' } },
+        e('header', {
+          className: 'fp-header',
           style: {
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '20px 28px', background: 'var(--ink)', borderBottom: '1px solid rgba(250,247,240,0.08)'
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+            padding: '18px 28px', background: 'var(--ink)', borderBottom: '1px solid rgba(250,247,240,0.08)'
           }
         },
           e('div', {},
             e('h1', {
               style: {
-                fontSize: 21, fontWeight: 700, color: 'var(--paper)', letterSpacing: '-0.01em',
+                fontSize: narrow ? 19 : 21, fontWeight: 700, color: 'var(--paper)', letterSpacing: '-0.01em',
                 fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-display)'
               }
             }, t.title),
-            e('p', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.5)', marginTop: 3, fontWeight: 400 } }, t.subtitle)
+            e('p', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.6)', marginTop: 3, fontWeight: 400 } }, t.subtitle)
           ),
           e('button', {
-            onClick: toggleLang,
+            onClick: toggleLang, 'aria-label': t.switchLanguageLabel,
             style: {
-              background: 'rgba(250,247,240,0.08)', color: 'var(--paper)', border: '1px solid rgba(250,247,240,0.2)',
-              padding: '8px 18px', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'var(--font-en)', letterSpacing: '0.01em'
+              background: 'rgba(250,247,240,0.08)', color: 'var(--paper)', border: '1px solid rgba(250,247,240,0.24)',
+              padding: '9px 18px', minHeight: 40, borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'var(--font-en)', letterSpacing: '0.01em', flexShrink: 0
             }
-          }, lang === 'en' ? t.urdu : t.english)
+          }, t.switchLanguageLabel)
         ),
-        e('div', {
+        e('main', {
           className: 'fp-shell',
-          style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, padding: 22, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' }
+          style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, paddingBlock: 22, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' }
         },
           e(ControlPanel, { t, params, onChange: handleChange, isRTL }),
           e('div', { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 } },
             e(ResultCards, { results, t, isRTL }),
-            e('div', { style: { display: 'flex', gap: 14, flexWrap: 'wrap' } },
-              e(CashOutflowChart, { data: results.cashOutflow, t, duration: params.duration, roscaTurn: params.roscaTurn, isRTL }),
-              e(TrueCostChart, { data: results.trueCostData, t, isRTL })
+            e('div', { className: 'fp-charts', style: { display: 'flex', gap: 14, flexWrap: 'wrap' } },
+              e(CashOutflowChart, { data: results.cashOutflow, t, duration: params.duration, roscaTurn: results.turn, isRTL, narrow }),
+              e(TrueCostChart, { data: results.costData, t, isRTL, narrow })
+            ),
+            e('div', { style: { borderTop: '1px solid var(--rule)', marginTop: 4 } },
+              e(FeedbackPrompt, { t, params, lang })
             )
           )
         )
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(e(App));
+    // preact/compat provides React 17-style render(), not createRoot().
+    ReactDOM.render(e(App), document.getElementById('root'));
   </script>
 </body>
 </html>
