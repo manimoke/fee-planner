@@ -6,6 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Poora Naqsha</title>
 
+  <!-- App mark. Vendored PNGs (no SVG source — the mark is raster line art);
+       favicon-32 stays crisp in the tab, apple-touch-icon doubles as the PWA /
+       large icon. Both keep the dark ground; assets/logo.png is the same mark
+       with the ground knocked out for the header. See assets/BUILD.md. -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="180x180" href="assets/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#17181A" />
+
   <!-- Framework: Preact 10.29.8 + hooks + compat, vendored locally (replaces React 18 UMD
        from unpkg.com). preact/compat exposes React/ReactDOM-compatible APIs, so app code is
        unchanged apart from render(). ~9 KB brotli vs ~46 KB for react + react-dom. -->
@@ -933,14 +942,20 @@
             padding: '18px 28px', background: 'var(--ink)', borderBottom: '1px solid rgba(250,247,240,0.08)'
           }
         },
-          e('div', {},
-            e('h1', {
-              style: {
-                fontSize: narrow ? 19 : 21, fontWeight: 700, color: 'var(--paper)', letterSpacing: '-0.01em',
-                fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-display)'
-              }
-            }, t.title),
-            e('p', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.6)', marginTop: 3, fontWeight: 400 } }, t.subtitle)
+          e('div', { style: { display: 'flex', alignItems: 'center', gap: narrow ? 10 : 13, minWidth: 0 } },
+            e('img', {
+              src: 'assets/logo.png', alt: '', width: 153, height: 180,
+              style: { height: narrow ? 30 : 38, width: 'auto', display: 'block', flexShrink: 0 }
+            }),
+            e('div', { style: { minWidth: 0 } },
+              e('h1', {
+                style: {
+                  fontSize: narrow ? 19 : 21, fontWeight: 700, color: 'var(--paper)', letterSpacing: '-0.01em',
+                  fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-display)'
+                }
+              }, t.title),
+              e('p', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.6)', marginTop: 3, fontWeight: 400 } }, t.subtitle)
+            )
           ),
           e('div', { style: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 } },
             tipsDismissed ? e('button', {

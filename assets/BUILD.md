@@ -52,3 +52,42 @@ pyftsubset nnu-500.ttf \
 The Nastaliq unicode set is a full Urdu repertoire (not just the glyphs in the current
 strings), so adding Urdu UI text in later phases does not require re-subsetting. If you add
 a character outside it, extend the `--unicodes` list and rerun.
+
+## Mark and icons
+
+The app mark is raster line art (a 512x512 PNG on a `#17181A` ground, the same colour as
+`--ink`). There is no SVG source, so the derived files are PNGs:
+
+| file | size | use | ground |
+|------|------|-----|--------|
+| `logo.png`             | 153x180 | header wordmark lockup | knocked out (transparent) |
+| `favicon-32.png`       | 32x32   | browser tab            | kept dark |
+| `apple-touch-icon.png` | 180x180 | iOS home screen / PWA / large icon | kept dark |
+
+Regeneration (needs `pip install pillow`), from the 512x512 source:
+
+```python
+from PIL import Image
+src = Image.open('source-512.png').convert('RGB')
+bg  = (23, 24, 26)                       # == --ink
+
+# header logo: crop to the mark, ground -> distance-based alpha, downscale
+bx = (117, 88, 393, 423); pad = 26
+crop = src.crop((bx[0]-pad, bx[1]-pad, bx[2]+pad, bx[3]+pad)).convert('RGBA')
+px = crop.load(); LO, HI = 16, 120
+for y in range(crop.height):
+    for x in range(crop.width):
+        r, g, b, _ = px[x, y]
+        d = abs(r-bg[0]) + abs(g-bg[1]) + abs(b-bg[2])
+        px[x, y] = (r, g, b, 0 if d <= LO else 255 if d >= HI else round((d-LO)/(HI-LO)*255))
+crop.resize((round(crop.width*180/crop.height), 180), Image.LANCZOS).save('logo.png')
+
+# icons: square crop around the mark centre (255, 256), keep the dark ground
+for name, side, s in [('favicon-32.png', 344, 32), ('apple-touch-icon.png', 392, 180)]:
+    src.crop((255-side//2, 256-side//2, 255+side//2, 256+side//2)).resize((s, s), Image.LANCZOS).save(name)
+```
+
+`index.html` links `favicon-32` and `apple-touch-icon` from `<head>` and renders `logo.png`
+in the header next to the wordmark. If the mark artwork changes, rerun the block and, if the
+new ground colour differs from `#17181A`, update `bg` here, the `theme-color` meta, and
+`--ink` together.
