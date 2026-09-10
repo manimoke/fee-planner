@@ -1,0 +1,13 @@
+{
+  "name": "poora-naqsha",
+  "version": "0.1.0",
+  "private": true,
+  "description": "School-fee financing simulator — committee (ROSCA), amortized loan, compound savings.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "comments": {
+    "build": "None. index.html + model.js + assets/ is the whole deployable; Vercel serves it static.",
+    "deps": "None. Tests use Node's built-in test runner (node:test), no packages."
+  }
+}
