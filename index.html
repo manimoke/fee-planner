@@ -162,6 +162,8 @@
 
     .fp-shell { padding-left: max(22px, env(safe-area-inset-left)); padding-right: max(22px, env(safe-area-inset-right)); }
     .fp-guide { padding-left: max(22px, env(safe-area-inset-left)); padding-right: max(22px, env(safe-area-inset-right)); }
+    .fp-tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 34px; align-items: start; }
+    @media (max-width: 720px) { .fp-tips-grid { grid-template-columns: 1fr; gap: 14px; } }
 
     /* Tablet / narrow: stack the shell. */
     @media (max-width: 860px) {
@@ -233,7 +235,11 @@
       yes: "Yes",
       no: "No",
       feedbackThanks: "Thank you. Noted.",
-      guideToggle: "About and how to use it",
+      tipBarPrompt: "New here? How to read this comparison.",
+      tipShow: "Show",
+      tipHide: "Hide",
+      tipDismiss: "Dismiss",
+      tipReopen: "How to read this",
       guideAboutTitle: "About",
       guideAbout: "Every route to a school fee hides its cost somewhere different: the committee in a turn order nobody prices, the loan in the gap between a flat rate and a real one, the savings plan in a fee that keeps rising whilst you save toward it. Poora Naqsha means the whole picture, and that's the whole argument: this site models all three routes as real cash flows across real time, in Urdu and English. It won't pick for you. It'll just show you the end of each path before you commit to one.",
       guideHowTitle: "How to use",
@@ -294,7 +300,11 @@
       yes: "ہاں",
       no: "نہیں",
       feedbackThanks: "شکریہ۔ نوٹ کر لیا۔",
-      guideToggle: "تعارف اور استعمال کا طریقہ",
+      tipBarPrompt: "پہلی بار آئے ہیں؟ اس موازنے کو کیسے پڑھیں۔",
+      tipShow: "دکھائیں",
+      tipHide: "چھپائیں",
+      tipDismiss: "بند کریں",
+      tipReopen: "اس موازنے کو کیسے پڑھیں",
       guideAboutTitle: "تعارف",
       guideAbout: "ہر راستہ اپنی قیمت کہیں نہ کہیں چھپا لیتا ہے: کمیٹی اُس باری میں جس کی قیمت کوئی نہیں لگاتا، قرض اُس فرق میں جو فلیٹ شرح اور اصل شرح کے درمیان ہے، اور بچت اُس فیس میں جو بچت کے دوران خود بھی بڑھتی رہتی ہے۔ پورا نقشہ یعنی مکمل تصویر، اور یہی اس کی پوری دلیل ہے: یہ تینوں راستوں کو وقت کے ساتھ اصل حساب کے طور پر دکھاتا ہے، اردو اور انگریزی دونوں میں۔ یہ آپ کے لیے فیصلہ نہیں کرتا۔ یہ صرف ہر راستے کا انجام پہلے دکھا دیتا ہے۔",
       guideHowTitle: "استعمال کیسے کریں",
@@ -787,72 +797,84 @@
       );
     }
 
-    // Collapsible "About / how to use" band under the header. Opens on the first
-    // ever visit, then stays closed (the reader can reopen it); the seen flag is
-    // best-effort localStorage, same as the feedback queue.
-    function GuideTerm({ term, def, isRTL }) {
-      return e('div', { style: { marginBottom: 11 } },
-        e('dt', { style: { fontSize: isRTL ? 14 : 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 3 } }, term),
-        e('dd', { style: { fontSize: isRTL ? 13.5 : 12.5, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.95 : 1.55, margin: 0 } }, def)
+    // A slim, dismissible strip under the header holding the how-to and the number
+    // glossary. Collapsed to a single prompt row by default so it never competes
+    // with the calculator; "Show" expands it in place, the x button removes it for
+    // good (best-effort localStorage, same pattern as the feedback queue). Once
+    // removed, the "?" button in the header brings it back.
+    const eyebrow = (isRTL) => ({
+      fontSize: isRTL ? 13.5 : 10.5, fontWeight: 700, color: 'var(--rosca)', marginBottom: 7,
+      fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-en)',
+      ...(isRTL ? {} : { letterSpacing: '0.07em', textTransform: 'uppercase' }),
+    });
+
+    function TipBar({ t, isRTL, onDismiss }) {
+      const [expanded, setExpanded] = useState(false);
+      const terms = [
+        [t.monthlyPayment, t.guideMonthlyDef], [t.totalPaid, t.guideTotalDef],
+        [t.trueCost, t.guideRealCostDef], [t.moneyInHand, t.guideInHandDef], [t.effAPR, t.guideAprDef],
+      ];
+      return e('div', { style: { background: 'var(--rosca-soft)', borderBottom: '1px solid var(--rule)' } },
+        e('div', { className: 'fp-guide', style: { maxWidth: 1400, margin: '0 auto', paddingBlock: 8 } },
+          e('div', { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+            e('svg', { width: 15, height: 15, viewBox: '0 0 16 16', 'aria-hidden': 'true', style: { flexShrink: 0 } },
+              e('circle', { cx: 8, cy: 8, r: 7, fill: 'none', stroke: 'var(--rosca)', strokeWidth: 1.5 }),
+              e('path', { d: 'M8 7.2v4', stroke: 'var(--rosca)', strokeWidth: 1.6, strokeLinecap: 'round' }),
+              e('circle', { cx: 8, cy: 4.7, r: 0.95, fill: 'var(--rosca)' })
+            ),
+            e('span', { style: { flex: 1, fontSize: isRTL ? 13 : 12.5, color: 'var(--ink-soft)', fontWeight: 500, lineHeight: 1.4 } }, t.tipBarPrompt),
+            e('button', {
+              type: 'button', onClick: () => setExpanded(v => !v), 'aria-expanded': String(expanded),
+              style: {
+                flexShrink: 0, padding: '5px 12px', minHeight: 30, background: 'transparent', cursor: 'pointer',
+                border: '1px solid var(--rule-strong)', borderRadius: 'var(--radius-sm)',
+                fontSize: isRTL ? 12.5 : 11.5, fontWeight: 700, color: 'var(--ink)',
+                fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-en)',
+              }
+            }, expanded ? t.tipHide : t.tipShow),
+            e('button', {
+              type: 'button', onClick: onDismiss, 'aria-label': t.tipDismiss,
+              style: {
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                width: 28, height: 28, padding: 0, background: 'transparent', border: 'none',
+                cursor: 'pointer', color: 'var(--ink-soft)',
+              }
+            },
+              e('svg', { width: 13, height: 13, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
+                e('path', { d: 'M2 2l10 10M12 2L2 12', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' })
+              )
+            )
+          ),
+          expanded ? e('div', { className: 'fp-tips-grid', style: { marginTop: 12, paddingBottom: 6 } },
+            e('section', null,
+              e('h2', { style: eyebrow(isRTL) }, t.guideHowTitle),
+              e('ol', { style: { margin: 0, paddingInlineStart: 20, display: 'grid', gap: 5 } },
+                t.guideHow.map((s, i) => e('li', { key: i, style: { fontSize: isRTL ? 12.5 : 12, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.85 : 1.5 } }, s))
+              ),
+              e('p', { style: { margin: '10px 0 0', fontSize: isRTL ? 12 : 11, color: 'var(--ink-faint)', fontWeight: 500, lineHeight: isRTL ? 1.8 : 1.5 } }, t.guideTip)
+            ),
+            e('section', null,
+              e('h2', { style: eyebrow(isRTL) }, t.guideNumbersTitle),
+              e('dl', { style: { margin: 0 } },
+                terms.map(([term, def], i) => e('div', { key: i, style: { marginBottom: 8 } },
+                  e('dt', { style: { fontSize: isRTL ? 13 : 11.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 } }, term),
+                  e('dd', { style: { fontSize: isRTL ? 12.5 : 11.5, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.85 : 1.45, margin: 0 } }, def)
+                ))
+              )
+            )
+          ) : null
+        )
       );
     }
 
-    function Guide({ t, isRTL }) {
-      const [open, setOpen] = useState(() => {
-        try { return localStorage.getItem('pn_guide_seen') !== '1'; } catch (_) { return false; }
-      });
-      useEffect(() => { try { localStorage.setItem('pn_guide_seen', '1'); } catch (_) {} }, []);
-
-      const headStyle = {
-        fontSize: isRTL ? 14 : 11, fontWeight: 700, color: 'var(--rosca)', marginBottom: 8,
-        fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-en)',
-        ...(isRTL ? {} : { letterSpacing: '0.07em', textTransform: 'uppercase' }),
-      };
-      const para = { fontSize: isRTL ? 13.5 : 13, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.95 : 1.6, margin: 0 };
-
-      return e('div', { style: { background: 'var(--paper-raised)', borderBottom: '1px solid var(--rule)' } },
-        e('div', { className: 'fp-guide', style: { maxWidth: 1400, margin: '0 auto' } },
-          e('button', {
-            type: 'button', onClick: () => setOpen(o => !o), 'aria-expanded': String(open),
-            style: {
-              display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '13px 0',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              fontSize: isRTL ? 14 : 13, fontWeight: 700, color: 'var(--ink)',
-              fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-en)',
-              textAlign: isRTL ? 'right' : 'left', letterSpacing: isRTL ? 'normal' : '0.01em',
-            }
-          },
-            e('svg', {
-              width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true',
-              style: { flexShrink: 0, transition: 'transform 0.15s ease', transform: open ? 'rotate(90deg)' : (isRTL ? 'scaleX(-1)' : 'none') }
-            },
-              e('path', { d: 'M4 2l4 4-4 4', stroke: 'var(--rosca)', strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })
-            ),
-            t.guideToggle
-          ),
-          open ? e('div', { style: { maxWidth: 720, paddingBottom: 22, display: 'grid', gap: 20 } },
-            e('section', null,
-              e('h2', { style: headStyle }, t.guideAboutTitle),
-              e('p', { style: para }, t.guideAbout)
-            ),
-            e('section', null,
-              e('h2', { style: headStyle }, t.guideHowTitle),
-              e('ol', { style: { margin: 0, paddingInlineStart: 22, display: 'grid', gap: 6 } },
-                t.guideHow.map((s, i) => e('li', { key: i, style: { ...para, fontSize: isRTL ? 13 : 12.5, lineHeight: isRTL ? 1.9 : 1.5 } }, s))
-              )
-            ),
-            e('section', null,
-              e('h2', { style: headStyle }, t.guideNumbersTitle),
-              e('dl', { style: { margin: 0 } },
-                e(GuideTerm, { term: t.monthlyPayment, def: t.guideMonthlyDef, isRTL }),
-                e(GuideTerm, { term: t.totalPaid, def: t.guideTotalDef, isRTL }),
-                e(GuideTerm, { term: t.trueCost, def: t.guideRealCostDef, isRTL }),
-                e(GuideTerm, { term: t.moneyInHand, def: t.guideInHandDef, isRTL }),
-                e(GuideTerm, { term: t.effAPR, def: t.guideAprDef, isRTL })
-              )
-            ),
-            e('p', { style: { fontSize: isRTL ? 12.5 : 12, color: 'var(--ink-faint)', fontWeight: 500, lineHeight: isRTL ? 1.9 : 1.5, margin: 0 } }, t.guideTip)
-          ) : null
+    // The site's purpose, as a quiet full-width band at the very bottom of the page.
+    function AboutBox({ t, isRTL }) {
+      return e('footer', { style: { background: 'var(--paper-raised)', borderTop: '1px solid var(--rule)' } },
+        e('div', { className: 'fp-guide', style: { maxWidth: 1400, margin: '0 auto', paddingBlock: 24 } },
+          e('div', { style: { maxWidth: 680 } },
+            e('h2', { style: eyebrow(isRTL) }, t.guideAboutTitle),
+            e('p', { style: { fontSize: isRTL ? 13.5 : 12.5, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.95 : 1.65, margin: 0 } }, t.guideAbout)
+          )
         )
       );
     }
@@ -894,6 +916,15 @@
 
       const toggleLang = () => setLang(prev => prev === 'en' ? 'ur' : 'en');
 
+      // The tip strip is shown until the reader dismisses it; the flag is
+      // best-effort localStorage (same as the feedback queue). The header "?"
+      // button restores it.
+      const [tipsDismissed, setTipsDismissed] = useState(() => {
+        try { return localStorage.getItem('pn_tips_dismissed') === '1'; } catch (_) { return false; }
+      });
+      const dismissTips = () => { setTipsDismissed(true); try { localStorage.setItem('pn_tips_dismissed', '1'); } catch (_) {} };
+      const restoreTips = () => { setTipsDismissed(false); try { localStorage.removeItem('pn_tips_dismissed'); } catch (_) {} };
+
       return e('div', { style: { minHeight: '100dvh', display: 'flex', flexDirection: 'column' } },
         e('header', {
           className: 'fp-header',
@@ -911,16 +942,27 @@
             }, t.title),
             e('p', { style: { fontSize: 12.5, color: 'rgba(250,247,240,0.6)', marginTop: 3, fontWeight: 400 } }, t.subtitle)
           ),
-          e('button', {
-            onClick: toggleLang, 'aria-label': t.switchLanguageLabel,
-            style: {
-              background: 'rgba(250,247,240,0.08)', color: 'var(--paper)', border: '1px solid rgba(250,247,240,0.24)',
-              padding: '9px 18px', minHeight: 40, borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'var(--font-en)', letterSpacing: '0.01em', flexShrink: 0
-            }
-          }, t.switchLanguageLabel)
+          e('div', { style: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 } },
+            tipsDismissed ? e('button', {
+              onClick: restoreTips, 'aria-label': t.tipReopen, title: t.tipReopen,
+              style: {
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 40, height: 40, minHeight: 40,
+                background: 'rgba(250,247,240,0.08)', color: 'var(--paper)', border: '1px solid rgba(250,247,240,0.24)',
+                borderRadius: 'var(--radius-sm)', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-en)'
+              }
+            }, '?') : null,
+            e('button', {
+              onClick: toggleLang, 'aria-label': t.switchLanguageLabel,
+              style: {
+                background: 'rgba(250,247,240,0.08)', color: 'var(--paper)', border: '1px solid rgba(250,247,240,0.24)',
+                padding: '9px 18px', minHeight: 40, borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                fontFamily: 'var(--font-en)', letterSpacing: '0.01em'
+              }
+            }, t.switchLanguageLabel)
+          )
         ),
-        e(Guide, { t, isRTL }),
+        tipsDismissed ? null : e(TipBar, { t, isRTL, onDismiss: dismissTips }),
         e('main', {
           className: 'fp-shell',
           style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, paddingBlock: 22, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' }
@@ -936,7 +978,8 @@
               e(FeedbackPrompt, { t, params, lang })
             )
           )
-        )
+        ),
+        e(AboutBox, { t, isRTL })
       );
     }
 
