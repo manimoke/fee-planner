@@ -53,33 +53,35 @@
       --font-ur: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', serif;
       --font-display: Georgia, 'Times New Roman', serif;
 
-      /* Ledger palette */
-      --paper: #FAF7F0;
+      /* Ledger palette. Base surfaces are a near-neutral warm grey (the old cream
+         + tan combination read as generic); a single marigold accent carries the
+         warmth. Contrast ratios in the comments were re-checked after the shift. */
+      --paper: #F2F1EE;
       --paper-raised: #FFFFFF;
-      --ink: #1C1B19;
-      --ink-soft: #57534E;
-      --ink-faint: #6B6355;      /* 5.5:1 on --paper (was #A39E93, 2.5:1 — failed WCAG AA) */
-      --rule: #E4DFD3;
-      --rule-strong: #D2CBB9;
+      --ink: #17181A;
+      --ink-soft: #52535A;
+      --ink-faint: #5E5F65;      /* 5.4:1 on --paper (was #A39E93, 2.5:1, failed WCAG AA) */
+      --rule: #E3E2DE;
+      --rule-strong: #CDCCC7;
 
       /* Route colors — the single source of truth. Every chart line, bar, glyph,
          slider, section header and legend reads one of these (6d).
            <route>        strong ink-side mark colour (>=3:1 on --paper)
            <route>-bright  lighter tint for the dark control panel (>=6.7:1 on --ink)
            <route>-soft    faint fill for card chips / backgrounds */
-      --loan: #3B4C8C;   --loan-bright: #8C9EE8;   --loan-soft: #EEF0F8;
-      --savings: #1F7A6C; --savings-bright: #5FC4AE; --savings-soft: #EAF4F1;
-      --rosca: #9E6014;   --rosca-bright: #D9A867;   --rosca-soft: #FAF1E4;
+      --loan: #3B4C8C;   --loan-bright: #8C9EE8;   --loan-soft: #EDEEF6;
+      --savings: #1F7A6C; --savings-bright: #5FC4AE; --savings-soft: #E8F2EF;
+      --rosca: #9E6014;   --rosca-bright: #E0A23D;   --rosca-soft: #F6EFE2;
 
       --good: #2A7A4F;
       --bad: #B0442E;
-      --accent: #D9A867;        /* general input accent on the dark control panel (7.9:1 on --ink) */
+      --accent: #E0A23D;        /* general input accent on the dark control panel (8.2:1 on --ink) */
 
-      --radius-sm: 4px;
-      --radius-md: 6px;
-      --radius-lg: 8px;
-      --shadow-card: 0 1px 2px rgba(28,27,25,0.04), 0 1px 0 rgba(28,27,25,0.03);
-      --shadow-raised: 0 4px 16px rgba(28,27,25,0.06), 0 1px 2px rgba(28,27,25,0.05);
+      --radius-sm: 0px;
+      --radius-md: 0px;
+      --radius-lg: 0px;
+      --shadow-card: 0 1px 2px rgba(23,24,26,0.05), 0 1px 0 rgba(23,24,26,0.03);
+      --shadow-raised: 0 4px 16px rgba(23,24,26,0.07), 0 1px 2px rgba(23,24,26,0.05);
     }
     html { background: var(--paper); }
     body {
@@ -94,29 +96,38 @@
       direction: rtl;
     }
 
-    /* Sliders: ~44px vertical hit area (touch) via padding on the input, while the
-       visible track stays thin. Thumb is 20px, 24px on coarse pointers. */
+    /* Sliders: the input is transparent and only carries the pointer hit area
+       (24px, 32px on coarse pointers). The visible 4px rail and the square thumb
+       are pseudo-elements, so neither overflows into the rows above or below.
+       The previous padding + negative-margin trick made the thumb sit across the
+       label of the next row. */
     input[type="range"] {
       -webkit-appearance: none; appearance: none;
-      width: 100%; height: 4px; border-radius: 2px;
-      background: var(--rule-strong); outline: none;
-      padding-block: 20px; margin-block: -20px; background-clip: content-box;
+      width: 100%; height: 24px; margin: 0;
+      background: transparent; outline: none; cursor: pointer;
       touch-action: pan-y;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px; border-radius: 0; background: var(--rule-strong);
+    }
+    input[type="range"]::-moz-range-track {
+      height: 4px; border-radius: 0; background: var(--rule-strong);
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: var(--paper-raised); border: 3px solid currentColor;
-      cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      width: 16px; height: 16px; border-radius: 0; margin-top: -6px;
+      background: var(--paper-raised); border: 2px solid currentColor;
+      cursor: pointer; box-shadow: 0 1px 2px rgba(23,24,26,0.28);
     }
     input[type="range"]::-moz-range-thumb {
-      width: 20px; height: 20px; border-radius: 50%;
-      background: var(--paper-raised); border: 3px solid currentColor;
-      cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      width: 16px; height: 16px; border-radius: 0; box-sizing: border-box;
+      background: var(--paper-raised); border: 2px solid currentColor;
+      cursor: pointer; box-shadow: 0 1px 2px rgba(23,24,26,0.28);
     }
     @media (pointer: coarse) {
-      input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
-      input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; }
+      input[type="range"] { height: 32px; }
+      input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; }
+      input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
     }
 
     button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
@@ -145,7 +156,7 @@
     /* Browser surfaces themed from the palette (craft floor). */
     ::selection { background: rgba(59,76,140,0.18); }
     ::-webkit-scrollbar { width: 11px; height: 11px; }
-    ::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 6px; border: 3px solid var(--paper); }
+    ::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 0; border: 3px solid var(--paper); }
     ::-webkit-scrollbar-track { background: transparent; }
     * { scrollbar-color: var(--rule-strong) transparent; scrollbar-width: thin; }
 
@@ -214,12 +225,12 @@
       takeawayAhead: "{route} leaves you ahead by {amt}",
       takeawaySoonest: "You hold the fee soonest with {route}",
       scrubHint: "Tap and drag across the chart for any month",
-      breakEven: "break-even",
+      breakEven: "breakeven",
       cashChartSummary: "By month {n}: loan {loan}, savings {savings}, committee {rosca}.",
       feedbackQ: "Did this comparison help you decide?",
       yes: "Yes",
       no: "No",
-      feedbackThanks: "Thank you — noted."
+      feedbackThanks: "Thank you. Noted."
     };
     const ur = {
       title: "پورا نقشہ",
@@ -264,7 +275,7 @@
       feedbackQ: "کیا اس موازنے سے فیصلہ کرنے میں مدد ملی؟",
       yes: "ہاں",
       no: "نہیں",
-      feedbackThanks: "شکریہ — نوٹ کر لیا۔"
+      feedbackThanks: "شکریہ۔ نوٹ کر لیا۔"
     };
     const translations = { en, ur };
 
@@ -318,9 +329,9 @@
       if (kind === 'savings') {
         // rising stack — compounding growth
         return e('svg', common,
-          e('rect', { x: 4, y: 15, width: 4.5, height: 5, rx: 1, fill: color, opacity: 0.85 }),
-          e('rect', { x: 10, y: 10, width: 4.5, height: 10, rx: 1, fill: color, opacity: 0.85 }),
-          e('rect', { x: 16, y: 4, width: 4.5, height: 16, rx: 1, fill: color, opacity: 0.85 })
+          e('rect', { x: 4, y: 15, width: 4.5, height: 5, fill: color, opacity: 0.85 }),
+          e('rect', { x: 10, y: 10, width: 4.5, height: 10, fill: color, opacity: 0.85 }),
+          e('rect', { x: 16, y: 4, width: 4.5, height: 16, fill: color, opacity: 0.85 })
         );
       }
       // rosca — rotating circle of contributors
@@ -446,12 +457,12 @@
       },
         e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 } },
           e('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
-            e('div', { style: { width: 26, height: 26, borderRadius: '50%', background: softColor, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+            e('div', { style: { width: 26, height: 26, borderRadius: 0, background: softColor, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
               e(RouteGlyph, { kind, color, size: 15 })
             ),
             e('h3', { style: { fontSize: 13.5, fontWeight: 700, color: 'var(--ink)', letterSpacing: '0.01em' } }, title)
           ),
-          isBest ? e('span', { style: { fontSize: 9.5, fontWeight: 700, color: color, background: softColor, padding: '3px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-en)' } }, t.bestValue) : null
+          isBest ? e('span', { style: { fontSize: 9.5, fontWeight: 700, color: color, background: softColor, padding: '3px 8px', borderRadius: 0, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-en)' } }, t.bestValue) : null
         ),
         e('p', { style: { fontSize: 11, color: 'var(--ink-soft)', marginBottom: 3, fontWeight: 500 } }, t.monthlyPayment),
         e('p', { style: { fontSize: 26, fontWeight: 700, color: 'var(--ink)', marginBottom: 4, fontFamily: 'var(--font-en)', lineHeight: 1.1, letterSpacing: '-0.01em' } }, money(data.monthly, t)),
@@ -474,7 +485,7 @@
               style: {
                 fontSize: 10, color: isGain ? 'var(--good)' : 'var(--ink-soft)', marginTop: 3, fontWeight: 600,
                 fontFamily: 'var(--font-en)', background: isGain ? 'rgba(42,122,79,0.08)' : 'var(--paper)',
-                padding: '2px 6px', borderRadius: 10, display: 'inline-block'
+                padding: '2px 6px', borderRadius: 0, display: 'inline-block'
               }
             }, qualifier)
           )
@@ -609,7 +620,7 @@
 
       return e(ChartCard, {
         title: t.cumulativeCashOutflow,
-        takeaway: t.takeawaySoonest.replace('{route}', t.amortizedLoan) + ` — ${t.committee}: ${inHandLabel(roscaTurn, t)}, ${t.compoundSavings}: ${inHandLabel(duration, t)}.`,
+        takeaway: t.takeawaySoonest.replace('{route}', t.amortizedLoan) + `. ${t.committee}: ${inHandLabel(roscaTurn, t)}, ${t.compoundSavings}: ${inHandLabel(duration, t)}.`,
         summary: t.cashChartSummary.replace('{n}', data[last].month).replace('{loan}', money(data[last].loan, t)).replace('{savings}', money(data[last].savings, t)).replace('{rosca}', money(data[last].rosca, t)),
       },
         e('svg', { ref: svgRef, viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': t.cumulativeCashOutflow, style: { width: '100%', height: 'auto', display: 'block', touchAction: 'none', cursor: 'crosshair' } },
@@ -618,7 +629,7 @@
           xTickIdx.map((i) => e('text', { key: `x${i}`, x: xScale(i), y: height - 12, textAnchor: 'middle', fontSize: g.axisFont, fill: 'var(--ink-faint)', fontFamily: 'var(--font-en)' }, data[i] ? data[i].month : i + 1)),
           roscaTurn > 0 && roscaTurn <= duration ? e('g', null,
             e('line', { x1: payoutX, y1: padding.top - 4, x2: payoutX, y2: height - padding.bottom, stroke: 'var(--rosca)', strokeWidth: 1.5, strokeDasharray: '5 4' }),
-            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: narrow ? 13 : 10.5, fill: 'var(--rosca)', fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.roscaPayout} · ${t.month} ${roscaTurn}`)
+            e('text', { x: payoutX, y: padding.top - 8, textAnchor: 'middle', fontSize: narrow ? 13 : 10.5, fill: 'var(--rosca)', fontWeight: 700, fontFamily: 'var(--font-en)' }, `${t.roscaPayout}, ${t.month} ${roscaTurn}`)
           ) : null,
           ROUTE_KEYS.map(k => e('path', { key: k, d: pathFor(k), fill: 'none', stroke: ROUTE[k].color, strokeWidth: 2.5, strokeDasharray: ROUTE[k].dash, strokeLinecap: 'round', strokeLinejoin: 'round' })),
           ROUTE_KEYS.map(k => e('circle', { key: `${k}m`, cx: xScale(last), cy: yScale(data[last][k]), r: 3.5, fill: ROUTE[k].color })),
@@ -676,7 +687,7 @@
             const cx = barCx(i), y0 = yScale(0), yv = yScale(r.v);
             const barY = Math.min(y0, yv), barH = Math.max(Math.abs(yv - y0), 2);
             return e('g', { key: r.key },
-              e('rect', { x: cx - barW / 2, y: barY, width: barW, height: barH, fill: r.gain ? 'var(--good)' : ROUTE[r.key].color, rx: 3 }),
+              e('rect', { x: cx - barW / 2, y: barY, width: barW, height: barH, fill: r.gain ? 'var(--good)' : ROUTE[r.key].color }),
               e('text', { x: cx, y: r.gain ? yv + g.labelFont + 5 : yv - 7, textAnchor: 'middle', fontSize: g.labelFont, fill: 'var(--ink)', fontWeight: 700, fontFamily: 'var(--font-en)' }, money(r.v, t))
             );
           })
