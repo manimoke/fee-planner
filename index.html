@@ -161,6 +161,7 @@
     * { scrollbar-color: var(--rule-strong) transparent; scrollbar-width: thin; }
 
     .fp-shell { padding-left: max(22px, env(safe-area-inset-left)); padding-right: max(22px, env(safe-area-inset-right)); }
+    .fp-guide { padding-left: max(22px, env(safe-area-inset-left)); padding-right: max(22px, env(safe-area-inset-right)); }
 
     /* Tablet / narrow: stack the shell. */
     @media (max-width: 860px) {
@@ -171,6 +172,7 @@
     @media (max-width: 560px) {
       .fp-header { padding: 14px 16px !important; }
       .fp-shell { padding: 14px !important; gap: 14px !important; }
+      .fp-guide { padding-left: 16px !important; padding-right: 16px !important; }
       .fp-charts { flex-direction: column !important; }
       .fp-charts > * { min-width: 0 !important; }
       .fp-cards > * { min-width: 0 !important; flex-basis: 100% !important; }
@@ -230,7 +232,23 @@
       feedbackQ: "Did this comparison help you decide?",
       yes: "Yes",
       no: "No",
-      feedbackThanks: "Thank you. Noted."
+      feedbackThanks: "Thank you. Noted.",
+      guideToggle: "About and how to use it",
+      guideAboutTitle: "About",
+      guideAbout: "Every route to a school fee hides its cost somewhere different: the committee in a turn order nobody prices, the loan in the gap between a flat rate and a real one, the savings plan in a fee that keeps rising whilst you save toward it. Poora Naqsha means the whole picture, and that's the whole argument: this site models all three routes as real cash flows across real time, in Urdu and English. It won't pick for you. It'll just show you the end of each path before you commit to one.",
+      guideHowTitle: "How to use",
+      guideHow: [
+        "Set the fee you need, the months you have, and the inflation you expect. These three apply to every route.",
+        "Set the rate for each route: the loan interest, the savings yield, and the month your committee turn falls.",
+        "Read the three cards and the two charts. The card marked Lowest Cost has the smallest real cost."
+      ],
+      guideNumbersTitle: "What the numbers mean",
+      guideMonthlyDef: "What that route takes from you each month.",
+      guideTotalDef: "Every rupee you pay over the full duration, added straight up with no discounting. It runs higher than the target fee on the loan because of interest, and on savings because you are feeding a fee that inflation keeps raising. Only the committee total matches the fee exactly.",
+      guideRealCostDef: "Everything you pay, brought back to today's rupees, minus the fee valued in the month that route puts the money in your hands. This is the number to compare. A green negative figure means the route leaves you ahead.",
+      guideInHandDef: "When you actually hold the full fee. The loan gives it to you now, the committee on your turn, savings only in the final month.",
+      guideAprDef: "Shown on a flat rate loan. It is the true yearly rate once you count the interest you pay on money you have already returned. It is close to double the flat number.",
+      guideTip: "Drag across either chart to read any single month."
     };
     const ur = {
       title: "پورا نقشہ",
@@ -275,7 +293,23 @@
       feedbackQ: "کیا اس موازنے سے فیصلہ کرنے میں مدد ملی؟",
       yes: "ہاں",
       no: "نہیں",
-      feedbackThanks: "شکریہ۔ نوٹ کر لیا۔"
+      feedbackThanks: "شکریہ۔ نوٹ کر لیا۔",
+      guideToggle: "تعارف اور استعمال کا طریقہ",
+      guideAboutTitle: "تعارف",
+      guideAbout: "ہر راستہ اپنی قیمت کہیں نہ کہیں چھپا لیتا ہے: کمیٹی اُس باری میں جس کی قیمت کوئی نہیں لگاتا، قرض اُس فرق میں جو فلیٹ شرح اور اصل شرح کے درمیان ہے، اور بچت اُس فیس میں جو بچت کے دوران خود بھی بڑھتی رہتی ہے۔ پورا نقشہ یعنی مکمل تصویر، اور یہی اس کی پوری دلیل ہے: یہ تینوں راستوں کو وقت کے ساتھ اصل حساب کے طور پر دکھاتا ہے، اردو اور انگریزی دونوں میں۔ یہ آپ کے لیے فیصلہ نہیں کرتا۔ یہ صرف ہر راستے کا انجام پہلے دکھا دیتا ہے۔",
+      guideHowTitle: "استعمال کیسے کریں",
+      guideHow: [
+        "جو فیس درکار ہے، جتنے مہینے آپ کے پاس ہیں، اور جتنی افراط زر کی توقع ہے، یہ تینوں مقرر کریں۔ یہ ہر راستے پر لاگو ہوتے ہیں۔",
+        "ہر راستے کی شرح مقرر کریں: قرض کا سود، بچت کا منافع، اور کمیٹی میں آپ کی باری کا مہینہ۔",
+        "تین کارڈ اور دو گراف دیکھیں۔ جس کارڈ پر ”سب سے کم لاگت“ لکھا ہو، اُس کی حقیقی لاگت سب سے کم ہے۔"
+      ],
+      guideNumbersTitle: "اعداد کا مطلب",
+      guideMonthlyDef: "یہ راستہ ہر مہینے آپ سے جو رقم لیتا ہے۔",
+      guideTotalDef: "پوری مدت میں آپ جتنی رقم ادا کرتے ہیں، بغیر کسی رعایت کے سیدھی جمع کر کے۔ قرض میں یہ ہدف فیس سے زیادہ ہوتی ہے سود کی وجہ سے، اور بچت میں اس لیے کہ جس فیس کے لیے آپ جمع کر رہے ہیں وہ افراط زر سے بڑھتی رہتی ہے۔ صرف کمیٹی کی کل ادائیگی فیس کے بالکل برابر رہتی ہے۔",
+      guideRealCostDef: "آپ کی ساری ادائیگی، آج کی قیمت میں لا کر، منہا اُس فیس کے جو اُس مہینے کی قیمت پر رکھی جائے جب یہ راستہ رقم آپ کے ہاتھ میں دیتا ہے۔ موازنے کے لیے یہی عدد دیکھیں۔ سبز منفی عدد کا مطلب ہے کہ اس راستے میں آپ کو فائدہ ہے۔",
+      guideInHandDef: "جب پوری فیس واقعی آپ کے ہاتھ میں آتی ہے۔ قرض ابھی دے دیتا ہے، کمیٹی آپ کی باری پر، اور بچت صرف آخری مہینے میں۔",
+      guideAprDef: "فلیٹ شرح والے قرض پر دکھائی جاتی ہے۔ یہ اصل سالانہ شرح ہے، اُس رقم پر ادا کیے گئے سود کو شمار کرنے کے بعد جو آپ پہلے ہی واپس کر چکے ہیں۔ یہ فلیٹ عدد سے تقریباً دوگنی ہوتی ہے۔",
+      guideTip: "کسی بھی ایک مہینے کی تفصیل دیکھنے کے لیے گراف پر انگلی پھیریں۔"
     };
     const translations = { en, ur };
 
@@ -753,6 +787,76 @@
       );
     }
 
+    // Collapsible "About / how to use" band under the header. Opens on the first
+    // ever visit, then stays closed (the reader can reopen it); the seen flag is
+    // best-effort localStorage, same as the feedback queue.
+    function GuideTerm({ term, def, isRTL }) {
+      return e('div', { style: { marginBottom: 11 } },
+        e('dt', { style: { fontSize: isRTL ? 14 : 12.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 3 } }, term),
+        e('dd', { style: { fontSize: isRTL ? 13.5 : 12.5, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.95 : 1.55, margin: 0 } }, def)
+      );
+    }
+
+    function Guide({ t, isRTL }) {
+      const [open, setOpen] = useState(() => {
+        try { return localStorage.getItem('pn_guide_seen') !== '1'; } catch (_) { return false; }
+      });
+      useEffect(() => { try { localStorage.setItem('pn_guide_seen', '1'); } catch (_) {} }, []);
+
+      const headStyle = {
+        fontSize: isRTL ? 14 : 11, fontWeight: 700, color: 'var(--rosca)', marginBottom: 8,
+        fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-en)',
+        ...(isRTL ? {} : { letterSpacing: '0.07em', textTransform: 'uppercase' }),
+      };
+      const para = { fontSize: isRTL ? 13.5 : 13, color: 'var(--ink-soft)', lineHeight: isRTL ? 1.95 : 1.6, margin: 0 };
+
+      return e('div', { style: { background: 'var(--paper-raised)', borderBottom: '1px solid var(--rule)' } },
+        e('div', { className: 'fp-guide', style: { maxWidth: 1400, margin: '0 auto' } },
+          e('button', {
+            type: 'button', onClick: () => setOpen(o => !o), 'aria-expanded': String(open),
+            style: {
+              display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '13px 0',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              fontSize: isRTL ? 14 : 13, fontWeight: 700, color: 'var(--ink)',
+              fontFamily: isRTL ? 'var(--font-ur)' : 'var(--font-en)',
+              textAlign: isRTL ? 'right' : 'left', letterSpacing: isRTL ? 'normal' : '0.01em',
+            }
+          },
+            e('svg', {
+              width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true',
+              style: { flexShrink: 0, transition: 'transform 0.15s ease', transform: open ? 'rotate(90deg)' : (isRTL ? 'scaleX(-1)' : 'none') }
+            },
+              e('path', { d: 'M4 2l4 4-4 4', stroke: 'var(--rosca)', strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })
+            ),
+            t.guideToggle
+          ),
+          open ? e('div', { style: { maxWidth: 720, paddingBottom: 22, display: 'grid', gap: 20 } },
+            e('section', null,
+              e('h2', { style: headStyle }, t.guideAboutTitle),
+              e('p', { style: para }, t.guideAbout)
+            ),
+            e('section', null,
+              e('h2', { style: headStyle }, t.guideHowTitle),
+              e('ol', { style: { margin: 0, paddingInlineStart: 22, display: 'grid', gap: 6 } },
+                t.guideHow.map((s, i) => e('li', { key: i, style: { ...para, fontSize: isRTL ? 13 : 12.5, lineHeight: isRTL ? 1.9 : 1.5 } }, s))
+              )
+            ),
+            e('section', null,
+              e('h2', { style: headStyle }, t.guideNumbersTitle),
+              e('dl', { style: { margin: 0 } },
+                e(GuideTerm, { term: t.monthlyPayment, def: t.guideMonthlyDef, isRTL }),
+                e(GuideTerm, { term: t.totalPaid, def: t.guideTotalDef, isRTL }),
+                e(GuideTerm, { term: t.trueCost, def: t.guideRealCostDef, isRTL }),
+                e(GuideTerm, { term: t.moneyInHand, def: t.guideInHandDef, isRTL }),
+                e(GuideTerm, { term: t.effAPR, def: t.guideAprDef, isRTL })
+              )
+            ),
+            e('p', { style: { fontSize: isRTL ? 12.5 : 12, color: 'var(--ink-faint)', fontWeight: 500, lineHeight: isRTL ? 1.9 : 1.5, margin: 0 } }, t.guideTip)
+          ) : null
+        )
+      );
+    }
+
     function App() {
       const [lang, setLang] = useState('en');
       const t = translations[lang];
@@ -816,6 +920,7 @@
             }
           }, t.switchLanguageLabel)
         ),
+        e(Guide, { t, isRTL }),
         e('main', {
           className: 'fp-shell',
           style: { display: 'flex', flexDirection: isRTL ? 'row-reverse' : 'row', flex: 1, paddingBlock: 22, gap: 20, maxWidth: 1400, margin: '0 auto', width: '100%' }
